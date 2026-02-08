@@ -1,73 +1,73 @@
-# React + TypeScript + Vite
+# 🚀 Done Together - Real-Time Collaborative Planning
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Done Together is a modern, fast, and collaborative planning app built with React, TypeScript, and Firebase. It allows friends, families, or teams to create shared plans, follow progress in real-time, and celebrate achievements together with images.
 
-Currently, two official plugins are available:
+![App Preview](https://via.placeholder.com/800x400?text=Done+Together+App+Preview)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Features
 
-## React Compiler
+- **Real-time Sync:** See updates from your collaborators instantly.
+- **Image Sharing:** Upload images for plans and individual items to document your progress.
+- **Friend System:** Easy search and friend requests via Gmail.
+- **Persistent Invites:** Share specific plans via unique links.
+- **History View:** Reflect on your completed plans in a dedicated archive.
+- **Auto-Cleanup:** Completed plans are automatically archived/deleted after 30 days to keep the app lean.
+- **Responsive Design:** Premium dark-mode UI that works great on mobile and desktop.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠️ Technology Stack
 
-## Expanding the ESLint configuration
+- **Frontend:** React 19 + TypeScript
+- **Styling:** Tailwind CSS + Framer Motion for animations
+- **Backend:** Firebase (Authentication & Firestore)
+- **Built with:** Vite
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🚀 Getting Started
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Prerequisites
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- Node.js (v18 or higher)
+- npm or yarn
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Installation
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/RobinAyzit/share-plans-done-together.git
+   cd share-plans-done-together
+   ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+3. Create a Firebase project and add your configuration to `src/lib/firebase.ts`.
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+## 🤝 Contributing
+
+We love contributions! Whether it's fixing a bug, adding a feature, or improving documentation:
+
+1. **Fork** the project.
+2. Create your **Feature Branch** (`git checkout -b feature/AmazingFeature`).
+3. **Commit** your changes (`git commit -m 'Add some AmazingFeature'`).
+4. **Push** to the branch (`git push origin feature/AmazingFeature`).
+5. Open a **Pull Request**.
+
+## 📝 Roadmap
+
+- [ ] Firebase Storage integration for higher resolution images.
+- [ ] Push notifications for item completion.
+- [ ] Recurring plans (weekly/monthly).
+- [ ] Dark/Light mode toggle.
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+Built with ❤️ by Robin Ayzit
