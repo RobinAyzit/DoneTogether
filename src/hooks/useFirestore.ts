@@ -143,8 +143,15 @@ export async function createPlan(
 
 export async function updatePlan(planId: string, updates: Partial<Plan>) {
     const planRef = doc(db, 'plans', planId);
+
+    // If we are reopening a plan, clear the completedAt timestamp
+    const finalUpdates = { ...updates };
+    if (updates.completed === false) {
+        (finalUpdates as any).completedAt = null;
+    }
+
     await updateDoc(planRef, {
-        ...updates,
+        ...finalUpdates,
         lastModified: Timestamp.now(),
     });
 }
@@ -166,6 +173,7 @@ export async function addItemToPlan(planId: string, text: string, imageUrl?: str
         items: arrayUnion(newItem),
         lastModified: Timestamp.now(),
         completed: false, // Reset completed if new item added
+        completedAt: null, // Clear completion timestamp
     });
 }
 
@@ -186,6 +194,7 @@ export async function updateItem(planId: string, itemId: string, updates: Partia
     await updateDoc(planRef, {
         items: updatedItems,
         completed: allChecked,
+        completedAt: allChecked ? Timestamp.now() : null,
         lastModified: Timestamp.now(),
     });
 }
@@ -203,6 +212,7 @@ export async function deleteItem(planId: string, itemId: string): Promise<void> 
     await updateDoc(planRef, {
         items: updatedItems,
         completed: allChecked,
+        completedAt: allChecked ? Timestamp.now() : null,
         lastModified: Timestamp.now(),
     });
 }
@@ -237,6 +247,7 @@ export async function toggleItemChecked(
     await updateDoc(planRef, {
         items: updatedItems,
         completed: allChecked,
+        completedAt: allChecked ? Timestamp.now() : null,
         lastModified: Timestamp.now(),
     });
 }

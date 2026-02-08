@@ -126,6 +126,27 @@ function App() {
     }
   }, [currentPlan?.completed]);
 
+  // Auto-cleanup for plans completed more than 30 days ago
+  useEffect(() => {
+    if (plans.length > 0 && isAuthenticated) {
+      const now = Date.now();
+      const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+
+      const oldPlans = plans.filter(plan => {
+        if (!plan.completed || !plan.completedAt) return false;
+        const completedTime = plan.completedAt.toMillis();
+        return (now - completedTime) > thirtyDaysInMs;
+      });
+
+      if (oldPlans.length > 0) {
+        console.log(`Auto-cleaning ${oldPlans.length} old plans...`);
+        oldPlans.forEach(plan => {
+          deletePlan(plan.id);
+        });
+      }
+    }
+  }, [plans, isAuthenticated]);
+
   const showToast = (message: string) => {
     setToast(message);
     setTimeout(() => setToast(''), 2200);

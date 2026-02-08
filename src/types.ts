@@ -26,6 +26,7 @@ export interface Plan {
     items: Item[];
     created: Timestamp;
     completed: boolean;
+    completedAt?: Timestamp;
     lastModified: Timestamp;
     imageUrl?: string;
 }
