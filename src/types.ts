@@ -1,5 +1,11 @@
 import { Timestamp } from 'firebase/firestore';
 
+export interface Reaction {
+    emoji: string;
+    userId: string;
+    userName: string;
+}
+
 export interface Item {
     id: string;
     text: string;
@@ -7,6 +13,7 @@ export interface Item {
     checkedBy?: string;
     checkedByUid?: string;
     imageUrl?: string;
+    reactions?: Reaction[];
 }
 
 export interface PlanMember {

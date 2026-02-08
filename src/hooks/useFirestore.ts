@@ -319,3 +319,53 @@ export async function removeMemberFromPlan(planId: string, userId: string): Prom
         lastModified: Timestamp.now(),
     });
 }
+
+export async function toggleReaction(
+    planId: string,
+    itemId: string,
+    userId: string,
+    userName: string,
+    emoji: string
+): Promise<void> {
+    const planRef = doc(db, 'plans', planId);
+    const planSnap = await getDoc(planRef);
+
+    if (!planSnap.exists()) return;
+
+    const plan = planSnap.data() as Plan;
+    const item = plan.items.find(i => i.id === itemId);
+    if (!item) return;
+
+    const reactions = item.reactions || [];
+    const existingIndex = reactions.findIndex(r => r.userId === userId && r.emoji === emoji);
+
+    let updatedReactions;
+    if (existingIndex > -1) {
+        // Remove reaction
+        updatedReactions = reactions.filter((_, i) => i !== existingIndex);
+    } else {
+        // Add reaction
+        updatedReactions = [...reactions, { userId, userName, emoji }];
+
+        // Notify the person who checked/uploaded the item (if it's not the same person)
+        const recipientId = item.checkedByUid || plan.ownerId;
+        if (recipientId !== userId) {
+            sendAppNotification(
+                recipientId,
+                `${userName} reagerade! ${emoji}`,
+                `${userName} gav en reaktion på "${item.text}" i ${plan.name}`,
+                'plan_update',
+                planId
+            );
+        }
+    }
+
+    const updatedItems = plan.items.map(i =>
+        i.id === itemId ? { ...i, reactions: updatedReactions } : i
+    );
+
+    await updateDoc(planRef, {
+        items: updatedItems,
+        lastModified: Timestamp.now()
+    });
+}

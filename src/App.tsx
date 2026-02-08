@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { Plus, Share2, Trash2, Pencil, Check, Users, User, ArrowLeft, Home, Camera, History, X } from 'lucide-react';
+import { Plus, Share2, Trash2, Pencil, Check, Users, User, ArrowLeft, Home, Camera, History, X, Smile } from 'lucide-react';
 import { compressAndToBase64 } from './lib/utils';
 import { useAuth } from './hooks/useAuth';
 import {
@@ -14,7 +14,8 @@ import {
   addItemToPlan,
   deletePlan,
   updatePlan,
-  addMemberToPlan
+  addMemberToPlan,
+  toggleReaction
 } from './hooks/useFirestore';
 import { useFriendRequests } from './hooks/useFriends';
 import { getInviteByCode, incrementInviteUse } from './hooks/useInvites';
@@ -25,6 +26,7 @@ import { FriendsModal } from './components/FriendsModal';
 import { ShareModal } from './components/ShareModal';
 import type { Plan, Item } from './types';
 
+const EMOJIS = ['❤️', '🔥', '💪', '🙏', '😂', '💯'];
 
 function App() {
   const { user, userProfile, loading: authLoading, error: authError, signInWithGoogle, signOut, isAuthenticated } = useAuth();
@@ -52,6 +54,7 @@ function App() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [itemFile, setItemFile] = useState<File | null>(null);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
+  const [activeReactionPicker, setActiveReactionPicker] = useState<string | null>(null);
 
   // Invite handling state
   const [pendingInviteCode, setPendingInviteCode] = useState<string | null>(null);
@@ -155,6 +158,15 @@ function App() {
   const showToast = (message: string) => {
     setToast(message);
     setTimeout(() => setToast(''), 2200);
+  };
+
+  const handleToggleReaction = async (planId: string, itemId: string, emoji: string) => {
+    if (!user || !userProfile) return;
+    try {
+      await toggleReaction(planId, itemId, user.uid, userProfile.displayName, emoji);
+    } catch (err: any) {
+      showToast('Kunde inte lägga till reaktion');
+    }
   };
 
   const triggerConfetti = () => {
@@ -688,6 +700,62 @@ function App() {
                                 <img src={item.imageUrl} className="w-full h-auto max-h-[400px] object-cover" alt="" />
                               </motion.div>
                             )}
+
+                            {/* Reactions Section */}
+                            <div className="mt-4 flex flex-wrap gap-2 items-center">
+                              {item.reactions && item.reactions.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5">
+                                  {Object.entries(
+                                    item.reactions.reduce((acc, curr) => {
+                                      acc[curr.emoji] = (acc[curr.emoji] || 0) + 1;
+                                      return acc;
+                                    }, {} as Record<string, number>)
+                                  ).map(([emoji, count]) => (
+                                    <button
+                                      key={emoji}
+                                      onClick={() => handleToggleReaction(currentPlan.id, item.id, emoji)}
+                                      className={`px-2 py-1 rounded-xl text-xs font-bold border transition-all flex items-center gap-1 ${item.reactions?.some(r => r.userId === user?.uid && r.emoji === emoji) ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-zinc-800/40 border-zinc-700/50 text-zinc-400'}`}
+                                    >
+                                      <span>{emoji}</span>
+                                      <span>{count}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+
+                              <div className="relative">
+                                <button
+                                  onClick={() => setActiveReactionPicker(activeReactionPicker === item.id ? null : item.id)}
+                                  className={`p-2 rounded-xl border transition-all ${activeReactionPicker === item.id ? 'bg-emerald-500 text-black border-emerald-500' : 'bg-zinc-800/40 border-zinc-800 text-zinc-500 hover:text-white hover:border-zinc-700'}`}
+                                >
+                                  <Smile className="w-4 h-4" />
+                                </button>
+
+                                <AnimatePresence>
+                                  {activeReactionPicker === item.id && (
+                                    <motion.div
+                                      initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                                      exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                                      className="absolute bottom-full mb-3 left-0 bg-zinc-900 border border-zinc-700 p-2 rounded-2xl shadow-2xl flex gap-1 z-20"
+                                    >
+                                      {EMOJIS.map(emoji => (
+                                        <button
+                                          key={emoji}
+                                          onClick={() => {
+                                            handleToggleReaction(currentPlan.id, item.id, emoji);
+                                            setActiveReactionPicker(null);
+                                          }}
+                                          className="p-2 hover:bg-zinc-800 rounded-xl transition-colors text-xl"
+                                        >
+                                          {emoji}
+                                        </button>
+                                      ))}
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </div>
+                            </div>
                           </div>
                         </motion.div>
                       ))
