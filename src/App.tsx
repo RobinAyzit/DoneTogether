@@ -18,6 +18,7 @@ import {
 } from './hooks/useFirestore';
 import { useFriendRequests } from './hooks/useFriends';
 import { getInviteByCode, incrementInviteUse } from './hooks/useInvites';
+import { useNotifications } from './hooks/useNotifications';
 import { JoinModal } from './components/JoinModal';
 import { AuthModal } from './components/AuthModal';
 import { FriendsModal } from './components/FriendsModal';
@@ -31,6 +32,9 @@ function App() {
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
   const { plan: currentPlan } = usePlan(currentPlanId);
   const { incomingRequests } = useFriendRequests(user?.uid);
+
+  // Register for push notifications
+  useNotifications(user?.uid);
 
   const [activeTab, setActiveTab] = useState<'home' | 'plans' | 'profile' | 'history'>('home');
   const [showAuthModal, setShowAuthModal] = useState(false);

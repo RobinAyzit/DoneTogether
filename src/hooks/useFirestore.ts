@@ -14,6 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { Plan, PlanMember, Item } from '../types';
+import { sendAppNotification } from '../lib/notifications';
 
 export function usePlans(userId: string | undefined) {
     const [plans, setPlans] = useState<Plan[]>([]);
@@ -197,6 +198,12 @@ export async function updateItem(planId: string, itemId: string, updates: Partia
         completedAt: allChecked ? Timestamp.now() : null,
         lastModified: Timestamp.now(),
     });
+
+    if (allChecked) {
+        Object.keys(plan.members).forEach(uid => {
+            sendAppNotification(uid, 'Plan slutförd! 🎉', `Planen "${plan.name}" är nu helt klar!`, 'plan_complete', planId);
+        });
+    }
 }
 
 export async function deleteItem(planId: string, itemId: string): Promise<void> {
@@ -215,6 +222,12 @@ export async function deleteItem(planId: string, itemId: string): Promise<void> 
         completedAt: allChecked ? Timestamp.now() : null,
         lastModified: Timestamp.now(),
     });
+
+    if (allChecked) {
+        Object.keys(plan.members).forEach(uid => {
+            sendAppNotification(uid, 'Plan slutförd! 🎉', `Planen "${plan.name}" är nu helt klar!`, 'plan_complete', planId);
+        });
+    }
 }
 
 export async function toggleItemChecked(
@@ -250,6 +263,12 @@ export async function toggleItemChecked(
         completedAt: allChecked ? Timestamp.now() : null,
         lastModified: Timestamp.now(),
     });
+
+    if (allChecked) {
+        Object.keys(plan.members).forEach(uid => {
+            sendAppNotification(uid, 'Plan slutförd! 🎉', `Planen "${plan.name}" är nu helt klar!`, 'plan_complete', planId);
+        });
+    }
 }
 
 export async function addMemberToPlan(
@@ -274,6 +293,15 @@ export async function addMemberToPlan(
         [`members.${userId}`]: member,
         lastModified: Timestamp.now(),
     });
+
+    // Notify the user they were added
+    await sendAppNotification(
+        userId,
+        'Du har lagts till i en plan! 🤝',
+        `Du är nu medlem i planen "${(await getDoc(planRef)).data()?.name}".`,
+        'plan_update',
+        planId
+    );
 }
 
 export async function removeMemberFromPlan(planId: string, userId: string): Promise<void> {

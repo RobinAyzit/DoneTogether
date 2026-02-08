@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { FriendRequest, UserProfile } from '../types';
+import { sendAppNotification } from '../lib/notifications';
 
 export function useFriends(userId: string | undefined) {
     const [friends, setFriends] = useState<UserProfile[]>([]);
@@ -159,6 +160,14 @@ export async function sendFriendRequest(
         status: 'pending',
         createdAt: Timestamp.now(),
     });
+
+    // Send notification
+    await sendAppNotification(
+        toUser.uid,
+        'Ny vänförfrågan! 👋',
+        `${fromUser.displayName} vill lägga till dig som vän.`,
+        'friend_request'
+    );
 }
 
 export async function acceptFriendRequest(requestId: string): Promise<void> {
@@ -185,6 +194,14 @@ export async function acceptFriendRequest(requestId: string): Promise<void> {
     await updateDoc(requestRef, {
         status: 'accepted',
     });
+
+    // Send notification to the sender that the request was accepted
+    await sendAppNotification(
+        request.from,
+        'Vänförfrågan accepterad! 🎉',
+        `${request.toEmail} har accepterat din förfrågan.`,
+        'friend_request'
+    );
 }
 
 export async function declineFriendRequest(requestId: string): Promise<void> {

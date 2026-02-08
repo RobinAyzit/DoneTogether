@@ -38,6 +38,7 @@ export interface UserProfile {
     photoURL?: string;
     friends: string[];
     createdAt: Timestamp;
+    fcmTokens?: string[];
 }
 
 export interface PlanInvite {
