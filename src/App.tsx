@@ -35,6 +35,11 @@ function App() {
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, [theme]);
   const { user, userProfile, loading: authLoading, error: authError, signInWithGoogle, signOut, isAuthenticated } = useAuth();
   const { plans, loading: _plansLoading } = usePlans(user?.uid);
@@ -347,7 +352,7 @@ function App() {
   }
 
   return (
-    <div className={`${theme === 'dark' ? 'dark' : ''} min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white font-sans selection:bg-emerald-500/30 transition-colors duration-300`}>
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white font-sans selection:bg-emerald-500/30 transition-colors duration-300">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-zinc-950/80 border-b border-zinc-200 dark:border-zinc-800/50 backdrop-blur-xl">
         <div className="max-w-3xl mx-auto px-6 h-20 flex items-center justify-between">
