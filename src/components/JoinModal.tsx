@@ -59,43 +59,43 @@ export function JoinModal({ onClose, onJoin, user, userProfile }: JoinModalProps
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm px-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-sm px-6">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-zinc-900 rounded-3xl border border-zinc-800 max-w-md w-full p-8 relative"
+                className="bg-white dark:bg-zinc-900 rounded-[32px] border border-zinc-200 dark:border-zinc-800 max-w-md w-full p-10 relative shadow-2xl"
             >
                 <button
                     onClick={onClose}
-                    className="absolute top-6 right-6 text-zinc-400 hover:text-white transition"
+                    className="absolute top-8 right-8 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition"
                 >
-                    <X className="w-5 h-5" />
+                    <X className="w-6 h-6" />
                 </button>
 
-                <div className="mb-6">
-                    <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-4 border border-purple-500/20">
-                        <LinkIcon className="w-6 h-6 text-purple-400" />
+                <div className="mb-8">
+                    <div className="w-14 h-14 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-6 border border-purple-500/20 rotate-3">
+                        <LinkIcon className="w-7 h-7 text-purple-600 dark:text-purple-400" />
                     </div>
-                    <h2 className="text-2xl font-bold mb-2">DoneTogether</h2>
-                    <p className="text-zinc-400 text-sm">
+                    <h2 className="text-3xl font-black italic uppercase tracking-tighter mb-2 text-zinc-900 dark:text-white">DoneTogether</h2>
+                    <p className="text-zinc-500 dark:text-zinc-400 font-medium italic">
                         Klistra in en inbjudningslänk eller kod för att gå med i en plan.
                     </p>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-6">
                     <div>
                         <input
                             type="text"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             placeholder="T.ex. https://.../join/ABC123"
-                            className="w-full h-12 px-4 bg-zinc-950 border border-zinc-800 rounded-xl focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition outline-none"
+                            className="w-full h-16 px-6 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all outline-none font-bold italic text-lg text-zinc-900 dark:text-white placeholder:text-zinc-300 dark:placeholder:text-zinc-700 shadow-inner"
                             autoFocus
                         />
                     </div>
 
                     {error && (
-                        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                        <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/20 text-red-500 text-sm font-bold text-center italic">
                             {error}
                         </div>
                     )}
@@ -103,17 +103,17 @@ export function JoinModal({ onClose, onJoin, user, userProfile }: JoinModalProps
                     <button
                         onClick={handleJoin}
                         disabled={loading || !input.trim()}
-                        className="w-full h-12 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-500 disabled:opacity-50 disabled:hover:bg-purple-600 transition flex items-center justify-center gap-2"
+                        className="w-full h-16 bg-purple-600 dark:bg-purple-600 text-white rounded-2xl font-black italic uppercase tracking-widest hover:bg-purple-500 disabled:opacity-30 transition-all flex items-center justify-center gap-3 shadow-xl shadow-purple-500/20 active:scale-95"
                     >
                         {loading ? (
                             <>
-                                <Loader className="w-4 h-4 animate-spin" />
+                                <Loader className="w-5 h-5 animate-spin" />
                                 Går med...
                             </>
                         ) : (
                             <>
-                                Gå med
-                                <ArrowRight className="w-4 h-4" />
+                                Gå med nu
+                                <ArrowRight className="w-5 h-5 stroke-[3px]" />
                             </>
                         )}
                     </button>

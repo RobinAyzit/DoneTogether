@@ -9,40 +9,40 @@ interface AuthModalProps {
 
 export function AuthModal({ onSignIn, onClose, error }: AuthModalProps) {
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm px-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-sm px-6">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-zinc-900 rounded-3xl border border-zinc-800 max-w-md w-full p-8 relative"
+                className="bg-white dark:bg-zinc-900 rounded-[32px] border border-zinc-200 dark:border-zinc-800 max-w-md w-full p-10 relative shadow-2xl"
             >
                 <button
                     onClick={onClose}
-                    className="absolute top-6 right-6 text-zinc-400 hover:text-white transition"
+                    className="absolute top-8 right-8 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition"
                 >
-                    <X className="w-5 h-5" />
+                    <X className="w-6 h-6" />
                 </button>
 
-                <div className="text-center mb-8">
-                    <div className="w-16 h-16 rounded-2xl bg-emerald-500 flex items-center justify-center mx-auto mb-4">
-                        <LogIn className="w-8 h-8 text-black" />
+                <div className="text-center mb-10">
+                    <div className="w-20 h-20 rounded-3xl bg-emerald-500 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-500/20 rotate-3">
+                        <LogIn className="w-10 h-10 text-black stroke-[2.5px]" />
                     </div>
-                    <h2 className="text-2xl font-semibold mb-2">Logga in</h2>
-                    <p className="text-zinc-400">
-                        Använd ditt Google-konto för att börja samarbeta
+                    <h2 className="text-3xl font-black italic uppercase tracking-tighter mb-2 text-zinc-900 dark:text-white">Logga in</h2>
+                    <p className="text-zinc-500 dark:text-zinc-400 font-medium italic">
+                        Börja planera och utföra saker tillsammans med dina vänner.
                     </p>
                 </div>
 
                 {error && (
-                    <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                    <div className="mb-6 p-4 rounded-2xl bg-red-500/5 border border-red-500/20 text-red-500 text-sm font-bold text-center italic">
                         {error}
                     </div>
                 )}
 
                 <button
                     onClick={onSignIn}
-                    className="w-full h-14 rounded-2xl bg-white text-black font-medium flex items-center justify-center gap-3 hover:bg-zinc-100 active:scale-[0.98] transition"
+                    className="w-full h-16 rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-black font-black italic uppercase tracking-widest flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-black/10"
                 >
-                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6" viewBox="0 0 24 24">
                         <path
                             fill="currentColor"
                             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -63,8 +63,8 @@ export function AuthModal({ onSignIn, onClose, error }: AuthModalProps) {
                     Fortsätt med Google
                 </button>
 
-                <div className="mt-6 text-center text-xs text-zinc-500">
-                    Genom att logga in godkänner du att dela dina planer med andra användare
+                <div className="mt-8 text-center text-[10px] font-black italic text-zinc-400 dark:text-zinc-600 uppercase tracking-widest leading-loose">
+                    Genom att logga in godkänner du att dela dina planer med andra utförare
                 </div>
             </motion.div>
         </div>

@@ -53,101 +53,102 @@ export function ShareModal({ plan, currentUserId, currentUserName, onClose }: Sh
     const isMember = (uid: string) => !!plan.members[uid];
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm px-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-sm px-6">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-zinc-900 rounded-3xl border border-zinc-800 max-w-lg w-full"
+                className="bg-white dark:bg-zinc-900 rounded-[32px] border border-zinc-200 dark:border-zinc-800 max-w-lg w-full shadow-2xl overflow-hidden"
             >
                 {/* Header */}
-                <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
+                <div className="p-8 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-800/20">
                     <div>
-                        <h2 className="text-xl font-semibold">Dela planen</h2>
-                        <p className="text-sm text-zinc-400 mt-1">{plan.name}</p>
+                        <h2 className="text-2xl font-black italic uppercase tracking-tighter text-zinc-900 dark:text-white">Dela planen</h2>
+                        <p className="text-xs font-bold text-emerald-600 dark:text-emerald-500 uppercase mt-1 italic">{plan.name}</p>
                     </div>
-                    <button onClick={onClose} className="text-zinc-400 hover:text-white transition">
-                        <X className="w-5 h-5" />
+                    <button onClick={onClose} className="p-2 rounded-xl text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all">
+                        <X className="w-6 h-6" />
                     </button>
                 </div>
 
                 {/* Content */}
-                <div className="p-6 space-y-6">
+                <div className="p-8 space-y-8 max-h-[70vh] overflow-auto">
                     {shareMessage && (
-                        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm text-center">
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm font-bold text-center italic"
+                        >
                             {shareMessage}
-                        </div>
+                        </motion.div>
                     )}
 
                     {/* Generate Link */}
-                    <div>
-                        <h3 className="text-sm font-medium mb-3 text-zinc-400 uppercase tracking-wider">
-                            Skapa delningslänk
+                    <div className="space-y-4">
+                        <h3 className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest ml-1">
+                            Bjud in med länk
                         </h3>
                         {!inviteLink ? (
                             <button
                                 onClick={handleGenerateLink}
                                 disabled={generating}
-                                className="w-full h-12 rounded-xl bg-emerald-500 text-black font-medium hover:bg-emerald-400 disabled:bg-zinc-800 disabled:text-zinc-600 transition flex items-center justify-center gap-2"
+                                className="w-full h-14 rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-black font-black italic uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 transition-all flex items-center justify-center gap-3 shadow-xl shadow-black/10"
                             >
-                                <LinkIcon className="w-4 h-4" />
-                                {generating ? 'Genererar...' : 'Generera delningslänk'}
+                                <LinkIcon className="w-5 h-5 stroke-[2.5px]" />
+                                {generating ? 'Genererar...' : 'Generera inbjudan'}
                             </button>
                         ) : (
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 <div className="flex gap-2">
                                     <input
                                         type="text"
                                         value={inviteLink}
                                         readOnly
-                                        className="flex-1 h-12 px-4 bg-zinc-800 border border-zinc-700 rounded-xl text-sm"
+                                        className="flex-1 h-14 px-5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-sm font-bold text-zinc-600 dark:text-zinc-400 focus:outline-none"
                                     />
                                     <button
                                         onClick={handleCopy}
-                                        className="px-4 h-12 rounded-xl bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 transition flex items-center gap-2"
+                                        className="px-6 h-14 rounded-2xl bg-emerald-500 text-black font-black italic uppercase tracking-widest hover:bg-emerald-400 transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20"
                                     >
-                                        {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                                        {copied ? 'Kopierad!' : 'Kopiera'}
+                                        {copied ? <Check className="w-5 h-5 stroke-[3px]" /> : <Copy className="w-5 h-5 stroke-[2.5px]" />}
+                                        {copied ? 'Klar!' : 'Kopiera'}
                                     </button>
                                 </div>
-                                <p className="text-xs text-zinc-500 text-center">
-                                    Dela denna länk med vem som helst för att bjuda in dem till planen
-                                </p>
                             </div>
                         )}
                     </div>
 
                     {/* Share with Friends */}
                     {friends.length > 0 && (
-                        <div>
-                            <h3 className="text-sm font-medium mb-3 text-zinc-400 uppercase tracking-wider">
-                                Dela med vänner
+                        <div className="space-y-4">
+                            <h3 className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest ml-1">
+                                Dela med dina vänner
                             </h3>
-                            <div className="space-y-2 max-h-64 overflow-auto">
+                            <div className="space-y-2">
                                 {friends.map((friend) => (
                                     <div
                                         key={friend.uid}
-                                        className="p-3 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-between"
+                                        className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/30 border border-zinc-100 dark:border-zinc-700/50 flex items-center justify-between hover:border-emerald-500/30 transition-all"
                                     >
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-4">
                                             {friend.photoURL ? (
-                                                <img src={friend.photoURL} alt="" className="w-8 h-8 rounded-full" />
+                                                <img src={friend.photoURL} alt="" className="w-10 h-10 rounded-xl object-cover border border-white dark:border-zinc-700" />
                                             ) : (
-                                                <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-sm">
+                                                <div className="w-10 h-10 rounded-xl bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-sm font-black text-zinc-500 dark:text-zinc-400">
                                                     {friend.displayName[0].toUpperCase()}
                                                 </div>
                                             )}
                                             <div>
-                                                <div className="font-medium text-sm">{friend.displayName}</div>
-                                                <div className="text-xs text-zinc-400">{friend.email}</div>
+                                                <div className="font-bold text-sm text-zinc-900 dark:text-white">{friend.displayName}</div>
+                                                <div className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase">{friend.email}</div>
                                             </div>
                                         </div>
 
                                         {isMember(friend.uid) ? (
-                                            <div className="text-xs text-zinc-500">Redan medlem</div>
+                                            <div className="text-[10px] font-black uppercase text-zinc-300 dark:text-zinc-600 tracking-widest">Medlem</div>
                                         ) : (
                                             <button
                                                 onClick={() => handleShareWithFriend(friend.uid, friend.email, friend.displayName, friend.photoURL)}
-                                                className="text-xs px-3 py-1.5 rounded-lg bg-emerald-500 text-black font-medium hover:bg-emerald-400 transition"
+                                                className="px-4 py-2 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all"
                                             >
                                                 Bjud in
                                             </button>
@@ -159,32 +160,32 @@ export function ShareModal({ plan, currentUserId, currentUserName, onClose }: Sh
                     )}
 
                     {/* Current Members */}
-                    <div>
-                        <h3 className="text-sm font-medium mb-3 text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+                    <div className="space-y-4">
+                        <h3 className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest ml-1 flex items-center gap-2">
                             <UsersIcon className="w-4 h-4" />
                             Medlemmar ({Object.keys(plan.members).length})
                         </h3>
-                        <div className="space-y-2">
+                        <div className="grid grid-cols-1 gap-2">
                             {Object.values(plan.members).map((member) => (
                                 <div
                                     key={member.uid}
-                                    className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50 flex items-center justify-between"
+                                    className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 flex items-center justify-between transition-all"
                                 >
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-4">
                                         {member.photoURL ? (
-                                            <img src={member.photoURL} alt="" className="w-8 h-8 rounded-full" />
+                                            <img src={member.photoURL} alt="" className="w-10 h-10 rounded-xl object-cover border border-white dark:border-zinc-800" />
                                         ) : (
-                                            <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-sm">
+                                            <div className="w-10 h-10 rounded-xl bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center text-sm font-black text-zinc-500 dark:text-zinc-500">
                                                 {member.displayName[0].toUpperCase()}
                                             </div>
                                         )}
                                         <div>
-                                            <div className="font-medium text-sm">{member.displayName}</div>
-                                            <div className="text-xs text-zinc-400">{member.email}</div>
+                                            <div className="font-bold text-sm text-zinc-900 dark:text-white">{member.displayName}</div>
+                                            <div className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase">{member.email}</div>
                                         </div>
                                     </div>
-                                    <div className="text-xs px-2 py-1 rounded bg-zinc-700/50 text-zinc-400">
-                                        {member.role === 'owner' ? 'Ägare' : member.role === 'editor' ? 'Redaktör' : 'Läsare'}
+                                    <div className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-lg tracking-widest ${member.role === 'owner' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-500' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500'}`}>
+                                        {member.role === 'owner' ? 'Ägare' : 'Medhjälpare'}
                                     </div>
                                 </div>
                             ))}
