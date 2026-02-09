@@ -388,3 +388,31 @@ export async function toggleReaction(
         lastModified: Timestamp.now()
     });
 }
+
+export async function cleanupExpiredPlans(userId: string): Promise<void> {
+    const plansRef = collection(db, 'plans');
+    const q = query(
+        plansRef,
+        where(`members.${userId}`, '!=', null),
+        where('completed', '==', true)
+    );
+
+    onSnapshot(q, async (snapshot) => {
+        const now = Date.now();
+        const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+
+        for (const doc of snapshot.docs) {
+            const plan = doc.data() as Plan;
+            if (plan.completedAt) {
+                const completedTime = plan.completedAt.toMillis();
+                if (now - completedTime > thirtyDaysInMs) {
+                    await deleteDoc(doc.ref);
+                    console.log(`Deleted expired plan: ${plan.name}`);
+                }
+            }
+        }
+    });
+
+    // We only want to run this once, so we'll just let it run and not worry about unsubscribing 
+    // since it's used at app level usually. 
+}

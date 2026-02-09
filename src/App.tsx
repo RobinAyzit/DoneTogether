@@ -15,7 +15,8 @@ import {
   deletePlan,
   updatePlan,
   addMemberToPlan,
-  toggleReaction
+  toggleReaction,
+  cleanupExpiredPlans
 } from './hooks/useFirestore';
 import { useFriendRequests } from './hooks/useFriends';
 import { getInviteByCode, incrementInviteUse } from './hooks/useInvites';
@@ -50,7 +51,7 @@ function App() {
   // Register for push notifications
   useNotifications(user?.uid);
 
-  const [activeTab, setActiveTab] = useState<'home' | 'plans' | 'profile' | 'history'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'plans' | 'completed' | 'profile'>('home');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -83,6 +84,13 @@ function App() {
       }
     }
   }, []);
+
+  // Auto-cleanup expired completed plans (30 days)
+  useEffect(() => {
+    if (isAuthenticated && user?.uid) {
+      cleanupExpiredPlans(user.uid).catch(console.error);
+    }
+  }, [isAuthenticated, user?.uid]);
 
   // Handle joining plan when authenticated
   useEffect(() => {
@@ -818,10 +826,10 @@ function App() {
                   <p className="text-zinc-500 dark:text-zinc-400 text-sm font-medium tracking-tight mb-10">{userProfile.email}</p>
 
                   <div className="grid grid-cols-2 gap-4 w-full mb-8">
-                    <button onClick={() => setActiveTab('history')} className="bg-zinc-50 dark:bg-zinc-800/40 p-6 rounded-[28px] text-center border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/20 dark:hover:border-emerald-500/30 transition-all hover:-translate-y-1">
+                    <button onClick={() => setActiveTab('completed')} className="bg-zinc-50 dark:bg-zinc-800/40 p-6 rounded-[28px] text-center border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/20 dark:hover:border-emerald-500/30 transition-all hover:-translate-y-1">
                       <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400 mb-1">{completedPlans.length}</div>
                       <div className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest flex items-center justify-center gap-2">
-                        <History className="w-3 h-3" /> Historik
+                        <Check className="w-3 h-3" /> Klarade
                       </div>
                     </button>
                     <button onClick={() => setShowFriendsModal(true)} className="bg-zinc-50 dark:bg-zinc-800/40 p-6 rounded-[28px] text-center border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/20 dark:hover:border-emerald-500/30 transition-all hover:-translate-y-1">
@@ -867,9 +875,9 @@ function App() {
             </motion.div>
           )}
 
-          {activeTab === 'history' && (
+          {activeTab === 'completed' && (
             <motion.div
-              key="history"
+              key="completed"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -879,44 +887,53 @@ function App() {
                 <button onClick={() => setActiveTab('profile')} className="p-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-400 transition-colors">
                   <ArrowLeft className="w-5 h-5" />
                 </button>
-                <h2 className="text-3xl font-black italic tracking-tighter uppercase">Historik</h2>
+                <h2 className="text-3xl font-black italic tracking-tighter uppercase">Klarade Planer</h2>
               </div>
 
               <div className="space-y-4">
-                {completedPlans.length > 0 ? completedPlans.map(plan => (
-                  <div key={plan.id} className="group flex flex-col p-6 rounded-[32px] bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/20 transition-all relative overflow-hidden shadow-sm hover:shadow-md">
-                    {plan.imageUrl && (
-                      <div className="absolute top-0 right-0 w-48 h-full opacity-5 dark:opacity-5 group-hover:opacity-10 transition-opacity">
-                        <img src={plan.imageUrl} className="w-full h-full object-cover grayscale" alt={plan.name} />
-                        <div className="absolute inset-0 bg-gradient-to-l from-white dark:from-zinc-950 via-white/60 dark:via-zinc-950/60 to-transparent" />
-                      </div>
-                    )}
+                {completedPlans.length > 0 ? completedPlans.map(plan => {
+                  const daysLeft = plan.completedAt ? Math.max(0, 30 - Math.floor((Date.now() - plan.completedAt.toMillis()) / (24 * 60 * 60 * 1000))) : 30;
 
-                    <div className="flex items-start justify-between relative z-10 mb-6">
-                      <div className="flex items-center gap-5">
-                        <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-500 border border-emerald-500/20">
-                          <Check className="w-6 h-6 stroke-[3px]" />
+                  return (
+                    <div key={plan.id} className="group flex flex-col p-6 rounded-[32px] bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/20 transition-all relative overflow-hidden shadow-sm hover:shadow-md">
+                      {plan.imageUrl && (
+                        <div className="absolute top-0 right-0 w-48 h-full opacity-5 dark:opacity-5 group-hover:opacity-10 transition-opacity">
+                          <img src={plan.imageUrl} className="w-full h-full object-cover grayscale" alt={plan.name} />
+                          <div className="absolute inset-0 bg-gradient-to-l from-white dark:from-zinc-950 via-white/60 dark:via-zinc-950/60 to-transparent" />
                         </div>
-                        <div>
-                          <h4 className="text-xl font-black text-zinc-900 dark:text-zinc-100 italic uppercase tracking-tight">{plan.name}</h4>
-                          <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-black uppercase tracking-widest mt-1">
-                            {plan.lastModified ? `AVKLARAD ${plan.lastModified.toDate().toLocaleDateString('sv-SE')}` : 'AVKLARAD'}
-                          </p>
-                        </div>
-                      </div>
-                      <button onClick={() => handleDeletePlan(plan.id)} className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-400 hover:bg-red-500/10 hover:text-red-500 transition-all">
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </div>
+                      )}
 
-                    <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-[0.1em] text-zinc-400 dark:text-zinc-500 relative z-10 border-t border-zinc-100 dark:border-zinc-800/50 pt-5">
-                      <span>{plan.items?.length || 0} PUNKTER AVKLARADE</span>
-                      <button onClick={() => handleReopenPlan(plan.id)} className="text-emerald-600 dark:text-emerald-500 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors bg-emerald-500/10 px-4 py-2 rounded-xl border border-emerald-500/20">
-                        ÅTERUPPTA
-                      </button>
+                      <div className="flex items-start justify-between relative z-10 mb-6">
+                        <div className="flex items-center gap-5">
+                          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-500 border border-emerald-500/20">
+                            <Check className="w-6 h-6 stroke-[3px]" />
+                          </div>
+                          <div>
+                            <h4 className="text-xl font-black text-zinc-900 dark:text-zinc-100 italic uppercase tracking-tight">{plan.name}</h4>
+                            <div className="flex flex-col gap-0.5 mt-1">
+                              <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-black uppercase tracking-widest">
+                                {plan.completedAt ? `KLAR ${plan.completedAt.toDate().toLocaleDateString('sv-SE')}` : 'AVKLARAD'}
+                              </p>
+                              <p className="text-[9px] font-bold text-red-500/80 uppercase tracking-tight">
+                                Raderas automatiskt om {daysLeft} {daysLeft === 1 ? 'dag' : 'dagar'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <button onClick={() => handleDeletePlan(plan.id)} className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-400 hover:bg-red-500/10 hover:text-red-500 transition-all">
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-[0.1em] text-zinc-400 dark:text-zinc-500 relative z-10 border-t border-zinc-100 dark:border-zinc-800/50 pt-5">
+                        <span>{plan.items?.length || 0} PUNKTER AVKLARADE</span>
+                        <button onClick={() => handleReopenPlan(plan.id)} className="text-emerald-600 dark:text-emerald-500 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors bg-emerald-500/10 px-4 py-2 rounded-xl border border-emerald-500/20">
+                          ÅTERUPPTA
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )) : (
+                  );
+                }) : (
                   <div className="text-center py-20 bg-white dark:bg-zinc-950/20 rounded-[40px] border-2 border-dashed border-zinc-200 dark:border-zinc-900">
                     <History className="w-16 h-16 text-zinc-200 dark:text-zinc-900 mx-auto mb-6" />
                     <p className="text-zinc-400 dark:text-zinc-600 font-black italic uppercase tracking-widest text-xs">Inga slutförda planer än.</p>
@@ -958,6 +975,22 @@ function App() {
           >
             <Check className="w-6 h-6 stroke-[2.5px]" />
             <span className="text-[9px] font-black uppercase tracking-widest">Planer</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('completed')}
+            className={`flex flex-col items-center gap-1.5 transition-all ${activeTab === 'completed' ? 'text-emerald-500 scale-110' : 'text-zinc-400 dark:text-zinc-600 hover:text-emerald-500 dark:hover:text-zinc-400'}`}
+          >
+            <History className="w-6 h-6 stroke-[2.5px]" />
+            <span className="text-[9px] font-black uppercase tracking-widest">Klarade</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`flex flex-col items-center gap-1.5 transition-all ${activeTab === 'profile' ? 'text-emerald-500 scale-110' : 'text-zinc-400 dark:text-zinc-600 hover:text-emerald-500 dark:hover:text-zinc-400'}`}
+          >
+            <User className="w-6 h-6 stroke-[2.5px]" />
+            <span className="text-[9px] font-black uppercase tracking-widest">Profil</span>
           </button>
         </div>
       </footer>
