@@ -76,7 +76,7 @@ export function JoinModal({ onClose, onJoin, user, userProfile }: JoinModalProps
                     <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-4 border border-purple-500/20">
                         <LinkIcon className="w-6 h-6 text-purple-400" />
                     </div>
-                    <h2 className="text-2xl font-bold mb-2">Done Together</h2>
+                    <h2 className="text-2xl font-bold mb-2">DoneTogether</h2>
                     <p className="text-zinc-400 text-sm">
                         Klistra in en inbjudningslänk eller kod för att gå med i en plan.
                     </p>

@@ -330,7 +330,7 @@ function App() {
       <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center">
         <div className="text-center">
           <div className="w-20 h-20 mx-auto mb-4 overflow-hidden rounded-3xl">
-            <img src="pwa-icon.png" className="w-full h-full object-cover scale-[1.6]" alt="Done Together" />
+            <img src="pwa-icon.png" className="w-full h-full object-cover scale-[1.6]" alt="DoneTogether" />
           </div>
           <p className="text-zinc-500 font-bold italic uppercase tracking-widest text-xs">Laddar appen...</p>
         </div>
@@ -347,7 +347,7 @@ function App() {
             <div className="w-10 h-10 overflow-hidden rounded-xl rotate-3 hover:rotate-6 transition-transform">
               <img src="pwa-icon.png" className="w-full h-full object-cover scale-[1.5]" alt="Logo" />
             </div>
-            <h1 className="text-xl font-black italic uppercase tracking-tighter">Done<span className="text-emerald-500">Together</span></h1>
+            <h1 className="text-xl font-black italic tracking-tighter">Done<span className="text-emerald-500">Together</span></h1>
           </div>
 
           <div className="flex items-center gap-4">
@@ -403,7 +403,7 @@ function App() {
             >
               {/* Hero Section */}
               <div className="bg-gradient-to-br from-emerald-500/10 to-transparent p-8 rounded-[32px] border border-emerald-500/10">
-                <h2 className="text-3xl font-bold mb-3 tracking-tight leading-tight uppercase italic font-black">Planera & Gör Saker Tillsammans.</h2>
+                <h2 className="text-3xl font-bold mb-3 tracking-tight leading-tight italic font-black">Planera & Gör Saker Tillsammans.</h2>
                 <p className="text-zinc-400 leading-relaxed mb-6 max-w-md italic">
                   Skapa realtidsplaner med dina vänner. Se vem som har bockat av vad och fira er framgång med bilder!
                 </p>

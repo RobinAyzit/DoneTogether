@@ -39,9 +39,9 @@ export function useNotifications(userId: string | undefined) {
         const unsubscribe = onMessage(messaging, (payload) => {
             console.log('Foreground message received:', payload);
             if (payload.notification) {
-                new Notification(payload.notification.title || 'Done Together', {
+                new Notification(payload.notification.title || 'DoneTogether', {
                     body: payload.notification.body,
-                    icon: '/share-plans-done-together/pwa-icon.png'
+                    icon: '/DoneTogether/pwa-icon.png'
                 });
             }
         });
