@@ -1,3 +1,4 @@
 @import "tailwindcss";
 
+/* Theme variant for Tailwind v4 selector strategy */
 @variant dark (&:where(.dark, .dark *));
