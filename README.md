@@ -1,8 +1,8 @@
-# 🚀 Done Together - Real-Time Collaborative Planning
+# 🚀 DoneTogether - Real-Time Collaborative Planning
 
-Done Together is a modern, fast, and collaborative planning app built with React, TypeScript, and Firebase. It allows friends, families, or teams to create shared plans, follow progress in real-time, and celebrate achievements together with images.
+DoneTogether is a modern, fast, and collaborative planning app built with React, TypeScript, and Firebase. It allows friends, families, or teams to create shared plans, follow progress in real-time, and celebrate achievements together with images.
 
-![App Preview](https://via.placeholder.com/800x400?text=Done+Together+App+Preview)
+![App Preview](https://via.placeholder.com/800x400?text=DoneTogether+App+Preview)
 
 ## ✨ Features
 
@@ -32,8 +32,8 @@ Done Together is a modern, fast, and collaborative planning app built with React
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/RobinAyzit/share-plans-done-together.git
-   cd share-plans-done-together
+   git clone https://github.com/RobinAyzit/DoneTogether.git
+   cd DoneTogether
    ```
 
 2. Install dependencies:

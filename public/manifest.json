@@ -1,8 +1,8 @@
 {
-    "name": "Done Together",
+    "name": "DoneTogether",
     "short_name": "DoneTogether",
     "description": "Planera och gör saker tillsammans i realtid.",
-    "start_url": "/share-plans-done-together/",
+    "start_url": "/DoneTogether/",
     "display": "standalone",
     "background_color": "#09090b",
     "theme_color": "#10b981",

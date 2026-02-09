@@ -25,7 +25,7 @@ messaging.onBackgroundMessage((payload) => {
     const notificationTitle = payload.notification.title;
     const notificationOptions = {
         body: payload.notification.body,
-        icon: '/share-plans-done-together/pwa-icon.png'
+        icon: '/DoneTogether/pwa-icon.png'
     };
 
     self.registration.showNotification(notificationTitle,
