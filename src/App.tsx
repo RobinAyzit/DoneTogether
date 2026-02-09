@@ -26,7 +26,7 @@ import { FriendsModal } from './components/FriendsModal';
 import { ShareModal } from './components/ShareModal';
 import type { Plan, Item } from './types';
 
-const EMOJIS = ['❤️', '🔥', '💪', '🙏', '😂', '💯'];
+const EMOJIS = ['❤️', '🔥', '💪', '🙏', '😂', '💯']; // Reactions supported by the app
 
 function App() {
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
