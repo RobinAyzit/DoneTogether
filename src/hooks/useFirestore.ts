@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
     collection,
     query,
@@ -11,9 +11,10 @@ import {
     arrayUnion,
     addDoc,
     deleteDoc,
+    writeBatch,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import type { Plan, PlanMember, Item } from '../types';
+import type { Plan, PlanMember, Item, Comment } from '../types';
 import { sendAppNotification } from '../lib/notifications';
 
 export function usePlans(userId: string | undefined) {
@@ -70,6 +71,75 @@ export function usePlan(planId: string | null) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const checkRecurringTasks = useCallback(async (currentPlan: Plan) => {
+        const now = Timestamp.now().toMillis();
+        let needsUpdate = false;
+        let updatedItems = [...currentPlan.items];
+        let resetCompleted = false;
+
+        // Check recurring items
+        updatedItems = updatedItems.map(item => {
+            if (item.recurring && item.recurring !== 'none' && item.checked && item.checkedAt) {
+                const checkedTime = (item.checkedAt as Timestamp).toMillis();
+                let shouldReset = false;
+                
+                const dayInMs = 24 * 60 * 60 * 1000;
+                if (item.recurring === 'daily' && now - checkedTime >= dayInMs) shouldReset = true;
+                if (item.recurring === 'weekly' && now - checkedTime >= 7 * dayInMs) shouldReset = true;
+                if (item.recurring === 'monthly' && now - checkedTime >= 30 * dayInMs) shouldReset = true;
+                if (item.recurring === 'yearly' && now - checkedTime >= 365 * dayInMs) shouldReset = true;
+
+                if (shouldReset) {
+                    needsUpdate = true;
+                    return {
+                        ...item,
+                        checked: false,
+                        checkedBy: undefined,
+                        checkedByUid: undefined,
+                        checkedAt: undefined,
+                        imageUrl: undefined
+                    };
+                }
+            }
+            return item;
+        });
+
+        // Check recurring plan
+        if (currentPlan.recurring && currentPlan.recurring !== 'none' && currentPlan.completed && currentPlan.completedAt) {
+            const completedTime = (currentPlan.completedAt as Timestamp).toMillis();
+            let shouldReset = false;
+            const dayInMs = 24 * 60 * 60 * 1000;
+
+            if (currentPlan.recurring === 'daily' && now - completedTime >= dayInMs) shouldReset = true;
+            if (currentPlan.recurring === 'weekly' && now - completedTime >= 7 * dayInMs) shouldReset = true;
+            if (currentPlan.recurring === 'monthly' && now - completedTime >= 30 * dayInMs) shouldReset = true;
+            if (currentPlan.recurring === 'yearly' && now - completedTime >= 365 * dayInMs) shouldReset = true;
+
+            if (shouldReset) {
+                needsUpdate = true;
+                resetCompleted = true;
+                updatedItems = updatedItems.map(item => ({
+                    ...item,
+                    checked: false,
+                    checkedBy: undefined,
+                    checkedByUid: undefined,
+                    checkedAt: undefined,
+                    imageUrl: undefined
+                }));
+            }
+        }
+
+        if (needsUpdate) {
+            const planRef = doc(db, 'plans', currentPlan.id);
+            await updateDoc(planRef, {
+                items: updatedItems,
+                completed: resetCompleted ? false : currentPlan.completed,
+                completedAt: resetCompleted ? null : currentPlan.completedAt,
+                lastModified: Timestamp.now()
+            });
+        }
+    }, []);
+
     useEffect(() => {
         if (!planId) {
             setPlan(null);
@@ -84,12 +154,14 @@ export function usePlan(planId: string | null) {
             (snapshot) => {
                 if (snapshot.exists()) {
                     const data = snapshot.data();
-                    setPlan({
+                    const fetchedPlan = {
                         id: snapshot.id,
                         ...data,
                         items: data.items || [],
                         members: data.members || {},
-                    } as Plan);
+                    } as Plan;
+                    setPlan(fetchedPlan);
+                    checkRecurringTasks(fetchedPlan);
                 } else {
                     setPlan(null);
                 }
@@ -104,7 +176,7 @@ export function usePlan(planId: string | null) {
         );
 
         return () => unsubscribe();
-    }, [planId]);
+    }, [planId, checkRecurringTasks]);
 
     return { plan, loading, error };
 }
@@ -116,7 +188,10 @@ export async function createPlan(
     userEmail: string,
     userName: string,
     userPhoto?: string,
-    imageUrl?: string
+    imageUrl?: string,
+    category?: string,
+    color?: string,
+    recurring?: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'none'
 ): Promise<string> {
     const plansRef = collection(db, 'plans');
     const newPlan: Omit<Plan, 'id'> = {
@@ -136,7 +211,10 @@ export async function createPlan(
         created: Timestamp.now(),
         completed: false,
         lastModified: Timestamp.now(),
-        imageUrl
+        imageUrl,
+        category,
+        color,
+        recurring
     };
     const docRef = await addDoc(plansRef, newPlan);
     return docRef.id;
@@ -162,13 +240,23 @@ export async function deletePlan(planId: string) {
     await deleteDoc(planRef);
 }
 
-export async function addItemToPlan(planId: string, text: string, userId: string, userName: string, imageUrl?: string): Promise<void> {
+export async function addItemToPlan(
+    planId: string,
+    text: string,
+    userId: string,
+    userName: string,
+    imageUrl?: string,
+    deadline?: Timestamp,
+    recurring?: 'daily' | 'weekly' | 'monthly' | 'none'
+): Promise<void> {
     const planRef = doc(db, 'plans', planId);
     const newItem: Item = {
         id: Math.random().toString(36).substring(2, 11),
         text,
         checked: false,
-        imageUrl
+        imageUrl,
+        deadline,
+        recurring
     };
     await updateDoc(planRef, {
         items: arrayUnion(newItem),
@@ -263,6 +351,7 @@ export async function toggleItemChecked(
             return {
                 ...i,
                 checked: newChecked,
+                checkedAt: newChecked ? Timestamp.now() : undefined,
                 checkedBy: newChecked ? displayName : undefined,
                 checkedByUid: newChecked ? userId : undefined,
                 imageUrl: newChecked ? (imageUrl || i.imageUrl) : i.imageUrl,
@@ -290,6 +379,69 @@ export async function toggleItemChecked(
             }
         }
     });
+}
+
+export async function addTaskComment(
+    planId: string,
+    itemId: string,
+    userId: string,
+    userName: string,
+    userPhoto: string | undefined,
+    text: string
+): Promise<void> {
+    const planRef = doc(db, 'plans', planId);
+    const planSnap = await getDoc(planRef);
+    if (!planSnap.exists()) return;
+
+    const plan = planSnap.data() as Plan;
+    const comment: Comment = {
+        id: Math.random().toString(36).substr(2, 9),
+        userId,
+        userName,
+        userPhoto,
+        text,
+        createdAt: Timestamp.now()
+    };
+
+    const updatedItems = plan.items.map(item => {
+        if (item.id === itemId) {
+            return {
+                ...item,
+                comments: [...(item.comments || []), comment]
+            };
+        }
+        return item;
+    });
+
+    await updateDoc(planRef, {
+        items: updatedItems,
+        lastModified: Timestamp.now()
+    });
+
+    // Notify other members
+    Object.keys(plan.members).forEach(uid => {
+        if (uid !== userId) {
+            sendAppNotification(
+                uid,
+                'Ny kommentar! 💬',
+                `${userName} kommenterade "${text.substring(0, 20)}..." på en uppgift i ${plan.name}`,
+                'plan_update',
+                planId
+            );
+        }
+    });
+
+    // Special notification for the person who completed the task
+    const item = plan.items.find(i => i.id === itemId);
+    if (item && item.checkedByUid && item.checkedByUid !== userId) {
+        sendAppNotification(
+            item.checkedByUid,
+            'Någon kommenterade din uppgift! 💬',
+            `${userName} kommenterade på uppgiften "${item.text}" som du fixade!`,
+            'plan_update',
+            planId
+        );
+    }
 }
 
 export async function addMemberToPlan(
@@ -341,6 +493,46 @@ export async function removeMemberFromPlan(planId: string, userId: string): Prom
     });
 }
 
+export async function updateItemDeadline(
+    planId: string,
+    itemId: string,
+    deadline: Timestamp | null
+): Promise<void> {
+    const planRef = doc(db, 'plans', planId);
+    const planSnap = await getDoc(planRef);
+    if (!planSnap.exists()) return;
+
+    const plan = planSnap.data() as Plan;
+    const updatedItems = plan.items.map(item =>
+        item.id === itemId ? { ...item, deadline: deadline || undefined } : item
+    );
+
+    await updateDoc(planRef, {
+        items: updatedItems,
+        lastModified: Timestamp.now()
+    });
+}
+
+export async function updateItemRecurring(
+    planId: string,
+    itemId: string,
+    recurring: 'daily' | 'weekly' | 'monthly' | 'none'
+): Promise<void> {
+    const planRef = doc(db, 'plans', planId);
+    const planSnap = await getDoc(planRef);
+    if (!planSnap.exists()) return;
+
+    const plan = planSnap.data() as Plan;
+    const updatedItems = plan.items.map(item =>
+        item.id === itemId ? { ...item, recurring: recurring === 'none' ? undefined : recurring } : item
+    );
+
+    await updateDoc(planRef, {
+        items: updatedItems,
+        lastModified: Timestamp.now()
+    });
+}
+
 export async function toggleReaction(
     planId: string,
     itemId: string,
@@ -384,6 +576,41 @@ export async function toggleReaction(
     const updatedItems = plan.items.map(i =>
         i.id === itemId ? { ...i, reactions: updatedReactions } : i
     );
+
+    await updateDoc(planRef, {
+        items: updatedItems,
+        lastModified: Timestamp.now()
+    });
+}
+
+export async function toggleCommentLike(
+    planId: string,
+    itemId: string,
+    commentId: string,
+    userId: string
+): Promise<void> {
+    const planRef = doc(db, 'plans', planId);
+    const planSnap = await getDoc(planRef);
+    if (!planSnap.exists()) return;
+
+    const plan = planSnap.data() as Plan;
+    const updatedItems = plan.items.map(item => {
+        if (item.id === itemId) {
+            const updatedComments = item.comments?.map(comment => {
+                if (comment.id === commentId) {
+                    const likes = comment.likes || [];
+                    const isLiked = likes.includes(userId);
+                    return {
+                        ...comment,
+                        likes: isLiked ? likes.filter(id => id !== userId) : [...likes, userId]
+                    };
+                }
+                return comment;
+            });
+            return { ...item, comments: updatedComments };
+        }
+        return item;
+    });
 
     await updateDoc(planRef, {
         items: updatedItems,

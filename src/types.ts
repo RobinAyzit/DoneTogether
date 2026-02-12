@@ -6,14 +6,28 @@ export interface Reaction {
     userName: string;
 }
 
+export interface Comment {
+    id: string;
+    userId: string;
+    userName: string;
+    userPhoto?: string;
+    text: string;
+    createdAt: Timestamp;
+    likes?: string[]; // Array of user UIDs who liked the comment
+}
+
 export interface Item {
     id: string;
     text: string;
     checked: boolean;
+    checkedAt?: Timestamp;
     checkedBy?: string;
     checkedByUid?: string;
     imageUrl?: string;
     reactions?: Reaction[];
+    comments?: Comment[];
+    deadline?: Timestamp;
+    recurring?: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'none';
 }
 
 export interface PlanMember {
@@ -36,6 +50,9 @@ export interface Plan {
     completedAt?: Timestamp;
     lastModified: Timestamp;
     imageUrl?: string;
+    category?: string;
+    color?: string;
+    recurring?: 'daily' | 'weekly' | 'monthly' | 'yearly' | 'none';
 }
 
 export interface UserProfile {

@@ -16,7 +16,11 @@ import {
   deletePlan,
   updatePlan,
   addMemberToPlan,
+  addTaskComment,
+  updateItemDeadline,
+  updateItemRecurring,
   toggleReaction,
+  toggleCommentLike,
   cleanupExpiredPlans
 } from './hooks/useFirestore';
 import { useFriendRequests } from './hooks/useFriends';
@@ -27,7 +31,9 @@ import { AuthModal } from './components/AuthModal';
 import { FriendsModal } from './components/FriendsModal';
 import { ShareModal } from './components/ShareModal';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
-import type { Plan, Item } from './types';
+import type { Plan, Item, Comment } from './types';
+import { Timestamp } from 'firebase/firestore';
+import { Calendar, Repeat, MessageCircle, Tag, Palette } from 'lucide-react';
 
 const EMOJIS = ['❤️', '🔥', '💪', '🙏', '😂', '💯']; // Reactions supported by the app
 
@@ -71,6 +77,17 @@ function App() {
   const [itemFile, setItemFile] = useState<File | null>(null);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [activeReactionPicker, setActiveReactionPicker] = useState<string | null>(null);
+  const [showComments, setShowComments] = useState<string | null>(null);
+  const [commentInput, setCommentInput] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [newPlanCategory, setNewPlanCategory] = useState('');
+  const [newPlanColor, setNewPlanColor] = useState('#10b981'); // Default emerald
+  const [itemDeadline, setItemDeadline] = useState<string>('');
+  const [itemRecurring, setItemRecurring] = useState<'daily' | 'weekly' | 'monthly' | 'yearly' | 'none'>('none');
+  const [newPlanRecurring, setNewPlanRecurring] = useState<'daily' | 'weekly' | 'monthly' | 'yearly' | 'none'>('none');
+
+  const CATEGORIES = ['Shopping', 'Home', 'Work', 'Personal', 'Fitness', 'Travel'];
+  const COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#f59e0b', '#ec4899'];
 
   // Invite handling state
   const [pendingInviteCode, setPendingInviteCode] = useState<string | null>(null);
@@ -227,10 +244,16 @@ function App() {
         userProfile.email,
         userProfile.displayName,
         userProfile.photoURL,
-        imageUrl
+        imageUrl,
+        newPlanCategory,
+        newPlanColor,
+        newPlanRecurring
       );
 
       setNewPlanName('');
+      setNewPlanCategory('');
+      setNewPlanColor('#10b981');
+      setNewPlanRecurring('none');
       setSelectedFile(null);
       setImagePreview(null);
       setShowCreateModal(false);
@@ -275,9 +298,14 @@ function App() {
       }
 
       if (!user || !userProfile) return;
-      await addItemToPlan(planId, text.trim(), user.uid, userProfile.displayName, imageUrl);
+
+      const deadline = itemDeadline ? Timestamp.fromDate(new Date(itemDeadline)) : undefined;
+
+      await addItemToPlan(planId, text.trim(), user.uid, userProfile.displayName, imageUrl, deadline, itemRecurring);
       setAddInput('');
       setItemFile(null);
+      setItemDeadline('');
+      setItemRecurring('none');
       showToast(t('plans.item_added'));
     } catch (error: any) {
       console.error('Error adding item:', error);
@@ -356,8 +384,34 @@ function App() {
     const timeB = b.created?.toMillis?.() || 0;
     return timeB - timeA;
   });
-  const activePlans = sortedPlans.filter((p) => !p.completed);
-  const completedPlans = sortedPlans.filter((p) => p.completed);
+  const handleAddComment = async (planId: string, itemId: string) => {
+    if (!commentInput.trim() || !user || !userProfile) return;
+    try {
+      await addTaskComment(planId, itemId, user.uid, userProfile.displayName, userProfile.photoURL, commentInput.trim());
+      setCommentInput('');
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    }
+  };
+
+  const handleToggleCommentLike = async (planId: string, itemId: string, commentId: string) => {
+    if (!user) return;
+    try {
+      await toggleCommentLike(planId, itemId, commentId, user.uid);
+    } catch (err) {
+      console.error('Error toggling comment like:', err);
+    }
+  };
+
+  const filteredPlans = plans.filter(p => !selectedCategory || p.category === selectedCategory);
+  const activePlans = filteredPlans.filter((p) => !p.completed);
+  const completedPlans = filteredPlans.filter((p) => p.completed);
+
+  const sortedActivePlans = [...activePlans].sort((a, b) => {
+    const timeA = a.created?.toMillis?.() || 0;
+    const timeB = b.created?.toMillis?.() || 0;
+    return timeB - timeA;
+  });
 
   if (authLoading) {
     return (
@@ -468,6 +522,25 @@ function App() {
                 </div>
               </div>
 
+              {/* Categories Filter */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <button
+                  onClick={() => setSelectedCategory(null)}
+                  className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all ${!selectedCategory ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20' : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-500'}`}
+                >
+                  Alla
+                </button>
+                {CATEGORIES.map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest whitespace-nowrap transition-all ${selectedCategory === cat ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20' : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-500'}`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
               {/* Active Plans List */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between px-2">
@@ -477,7 +550,7 @@ function App() {
 
                 {activePlans.length > 0 ? (
                   <div className="grid grid-cols-1 gap-4">
-                    {activePlans.map((plan) => (
+                    {sortedActivePlans.map((plan) => (
                       <motion.div
                         key={plan.id}
                         layoutId={plan.id}
@@ -485,8 +558,19 @@ function App() {
                           setCurrentPlanId(plan.id);
                           setActiveTab('plans');
                         }}
-                        className="group bg-white dark:bg-zinc-900/40 p-5 rounded-3xl border border-zinc-200 dark:border-zinc-800/50 hover:border-emerald-500/30 hover:bg-zinc-50 dark:hover:bg-zinc-900/60 transition-all cursor-pointer overflow-hidden relative shadow-sm hover:shadow-md"
+                        className="group bg-white dark:bg-zinc-900/40 p-5 rounded-3xl border border-zinc-200 dark:border-zinc-800/50 hover:bg-zinc-50 dark:hover:bg-zinc-900/60 transition-all cursor-pointer overflow-hidden relative shadow-sm hover:shadow-md"
+                        style={{ borderLeft: plan.color ? `6px solid ${plan.color}` : undefined }}
                       >
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-2">
+                            {plan.category && (
+                              <span className="px-2 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-[9px] font-black uppercase tracking-wider text-zinc-500 flex items-center gap-1">
+                                <Tag className="w-2.5 h-2.5" />
+                                {plan.category}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                         {plan.imageUrl && (
                           <div className="absolute top-0 right-0 w-32 h-full opacity-5 dark:opacity-10 group-hover:opacity-10 dark:group-hover:opacity-20 transition-opacity">
                             <img src={plan.imageUrl} className="w-full h-full object-cover grayscale" alt={plan.name} />
@@ -560,6 +644,7 @@ function App() {
                         key={plan.id}
                         onClick={() => setCurrentPlanId(plan.id)}
                         className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/20 transition-all cursor-pointer group shadow-sm hover:shadow-md"
+                        style={{ borderLeft: plan.color ? `6px solid ${plan.color}` : undefined }}
                       >
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 dark:text-zinc-500 group-hover:bg-emerald-500 group-hover:text-black transition-all overflow-hidden border border-zinc-100 dark:border-zinc-700">
@@ -567,7 +652,15 @@ function App() {
                           </div>
                           <div>
                             <div className="font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-zinc-950 dark:group-hover:text-white uppercase italic tracking-tight transition-colors">{plan.name}</div>
-                            <div className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase">{plan.items?.filter(i => i.checked).length || 0}/{plan.items?.length || 0} TAGNA</div>
+                            <div className="flex items-center gap-2">
+                              <div className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase">{plan.items?.filter(i => i.checked).length || 0}/{plan.items?.length || 0} TAGNA</div>
+                              {plan.category && (
+                                <span className="px-1.5 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-[8px] font-black uppercase tracking-wider text-zinc-500 flex items-center gap-1">
+                                  <Tag className="w-2 h-2" />
+                                  {plan.category}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                         {plan.ownerId === user?.uid && (
@@ -603,7 +696,8 @@ function App() {
                       <div className="flex items-center gap-4">
                         <div
                           onClick={() => currentPlan.imageUrl && setFullscreenImage(currentPlan.imageUrl)}
-                          className={`w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 overflow-hidden rotate-2 border-2 border-white dark:border-zinc-950 ${currentPlan.imageUrl ? 'cursor-pointer hover:scale-110 active:scale-95 transition-transform' : ''}`}
+                          className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg overflow-hidden rotate-2 border-2 border-white dark:border-zinc-950 ${currentPlan.imageUrl ? 'cursor-pointer hover:scale-110 active:scale-95 transition-transform' : ''}`}
+                          style={{ backgroundColor: currentPlan.color || '#10b981', boxShadow: currentPlan.color ? `0 10px 15px -3px ${currentPlan.color}33` : undefined }}
                         >
                           {currentPlan.imageUrl ? (
                             <img src={currentPlan.imageUrl} className="w-full h-full object-cover" alt={currentPlan.name} />
@@ -617,6 +711,12 @@ function App() {
                             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-2 py-1 rounded-lg">
                               {t('common.by') || 'BY'} {currentPlan.members?.[currentPlan.ownerId]?.displayName || t('common.unknown')}
                             </span>
+                            {currentPlan.category && (
+                              <span className="px-2 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-[10px] font-black uppercase tracking-wider text-zinc-500 flex items-center gap-1 border border-zinc-200 dark:border-zinc-800">
+                                <Tag className="w-3 h-3" />
+                                {currentPlan.category}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -661,7 +761,7 @@ function App() {
                       }}
                       className="relative group"
                     >
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 z-10">
                         <label className="cursor-pointer text-zinc-500 dark:text-zinc-600 hover:text-emerald-500 transition-colors bg-zinc-50 dark:bg-zinc-950 p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800">
                           <Camera className="w-5 h-5" />
                           <input type="file" accept="image/*" className="hidden" onChange={(e) => {
@@ -669,6 +769,43 @@ function App() {
                             if (file) setItemFile(file);
                           }} />
                         </label>
+                          {/* Deadline - ONLY show when not recurring */}
+                          {itemRecurring === 'none' && (
+                            <div className="relative group/deadline">
+                              <label className={`p-1.5 rounded-lg transition-all cursor-pointer border ${itemDeadline ? 'bg-emerald-500 text-black border-emerald-600' : 'bg-zinc-50 dark:bg-zinc-950 text-zinc-500 dark:text-zinc-600 border-zinc-200 dark:border-zinc-800 hover:text-emerald-500'}`}>
+                                <Calendar className="w-5 h-5" />
+                                <input
+                                  type="date"
+                                  className="absolute inset-0 opacity-0 cursor-pointer"
+                                  value={itemDeadline}
+                                  onChange={(e) => setItemDeadline(e.target.value)}
+                                />
+                              </label>
+                              {itemDeadline && (
+                                <button
+                                  type="button"
+                                  onClick={() => setItemDeadline('')}
+                                  className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 shadow-lg border border-white dark:border-zinc-950"
+                                >
+                                  <X className="w-2 h-2" />
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        <div className="relative group/recurring">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const types: ('none' | 'daily' | 'weekly' | 'monthly' | 'yearly')[] = ['none', 'daily', 'weekly', 'monthly', 'yearly'];
+                              const next = types[(types.indexOf(itemRecurring) + 1) % types.length];
+                              setItemRecurring(next);
+                            }}
+                            className={`p-1.5 rounded-lg transition-all border ${itemRecurring !== 'none' ? 'bg-emerald-500 text-black border-emerald-600' : 'bg-zinc-50 dark:bg-zinc-950 text-zinc-500 dark:text-zinc-600 border-zinc-200 dark:border-zinc-800 hover:text-emerald-500'}`}
+                            title={t(`plans.recurring_${itemRecurring}`)}
+                          >
+                            <Repeat className="w-5 h-5" />
+                          </button>
+                        </div>
                         {itemFile && (
                           <div className="relative">
                             <img src={URL.createObjectURL(itemFile)} className="w-7 h-7 rounded-lg border border-emerald-500 object-cover" alt="" />
@@ -683,7 +820,7 @@ function App() {
                         value={addInput}
                         onChange={(e) => setAddInput(e.target.value)}
                         placeholder={t('plans.what_else')}
-                        className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-3xl py-5 pl-20 pr-14 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-all font-bold italic shadow-sm"
+                        className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-3xl py-5 pl-40 pr-14 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-all font-bold italic shadow-sm"
                       />
                       <button type="submit" disabled={!addInput.trim()} className="absolute right-4 top-1/2 -translate-y-1/2 p-2.5 bg-emerald-500 text-black rounded-xl disabled:opacity-20 shadow-lg shadow-emerald-500/20 transition-all hover:scale-110 active:scale-95">
                         <Plus className="w-5 h-5 stroke-[4px]" />
@@ -732,11 +869,25 @@ function App() {
                                 <p className={`text-lg font-black italic tracking-tighter transition-all leading-tight ${item.checked ? 'line-through text-zinc-400 dark:text-zinc-600' : 'text-zinc-900 dark:text-zinc-100'}`}>
                                   {item.text}
                                 </p>
-                                {item.checked && item.checkedBy && (
-                                  <div className="text-[10px] font-black uppercase tracking-[0.1em] text-emerald-600 dark:text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded inline-block">
-                                    {t('plans.fixed_by', { name: item.checkedBy })}
-                                  </div>
-                                )}
+                                <div className="flex flex-wrap gap-2 items-center">
+                                  {item.checked && item.checkedBy && (
+                                    <div className="text-[10px] font-black uppercase tracking-[0.1em] text-emerald-600 dark:text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded inline-block">
+                                      {t('plans.fixed_by', { name: item.checkedBy })}
+                                    </div>
+                                  )}
+                                  {item.deadline && (
+                                    <div className={`text-[10px] font-black uppercase tracking-[0.1em] px-2 py-0.5 rounded flex items-center gap-1 ${item.checked ? 'bg-zinc-100 text-zinc-400' : item.deadline.toMillis() < Date.now() ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                                      <Calendar className="w-3 h-3" />
+                                      {item.deadline.toDate().toLocaleDateString('sv-SE')}
+                                    </div>
+                                  )}
+                                  {item.recurring && item.recurring !== 'none' && (
+                                    <div className={`text-[10px] font-black uppercase tracking-[0.1em] px-2 py-0.5 rounded flex items-center gap-1 ${item.checked ? 'bg-zinc-100 text-zinc-400' : 'bg-blue-500/10 text-blue-500'}`}>
+                                      <Repeat className="w-3 h-3" />
+                                      {t(`plans.recurring_${item.recurring}`)}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 {!item.checked && (
@@ -760,7 +911,7 @@ function App() {
                               </motion.div>
                             )}
 
-                            {/* Reactions Section */}
+                            {/* Comments Section */}
                             <div className="mt-4 flex flex-wrap gap-2 items-center">
                               {item.reactions && item.reactions.length > 0 && (
                                 <div className="flex flex-wrap gap-1.5">
@@ -814,7 +965,87 @@ function App() {
                                   )}
                                 </AnimatePresence>
                               </div>
+
+                              <button
+                                onClick={() => setShowComments(showComments === item.id ? null : item.id)}
+                                className={`p-2 rounded-xl border transition-all flex items-center gap-1.5 ${showComments === item.id ? 'bg-emerald-500 text-black border-emerald-500' : 'bg-zinc-50 dark:bg-zinc-800/40 border-zinc-200 dark:border-zinc-800 text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:border-zinc-300 dark:hover:border-zinc-700'}`}
+                              >
+                                <MessageCircle className="w-4 h-4" />
+                                {item.comments && item.comments.length > 0 && (
+                                  <span className="text-[10px] font-bold">{item.comments.length}</span>
+                                )}
+                              </button>
                             </div>
+
+                            {/* Comments Panel */}
+                            <AnimatePresence>
+                              {showComments === item.id && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: 'auto', opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800/50 space-y-4 overflow-hidden"
+                                >
+                                  <div className="space-y-3">
+                                    {item.comments?.map((comment) => (
+                                      <div key={comment.id} className="flex gap-3 items-start">
+                                        {comment.userPhoto ? (
+                                          <img src={comment.userPhoto} className="w-6 h-6 rounded-lg object-cover mt-1" alt="" />
+                                        ) : (
+                                          <div className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400 mt-1">
+                                            {comment.userName[0]}
+                                          </div>
+                                        )}
+                                        <div className="flex-1">
+                                          <div className="flex items-center gap-2 mb-0.5">
+                                            <span className="text-[10px] font-black uppercase tracking-tight text-zinc-900 dark:text-zinc-200">{comment.userName}</span>
+                                            <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">{comment.createdAt?.toDate().toLocaleDateString('sv-SE')}</span>
+                                          </div>
+                                          <p className="text-xs text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed">{comment.text}</p>
+                                        </div>
+                                        {/* Like/Read button - Only for other users */}
+                                        {user && comment.userId !== user.uid && (
+                                          <button
+                                            onClick={() => handleToggleCommentLike(currentPlan.id, item.id, comment.id)}
+                                            className={`flex flex-col items-center gap-0.5 p-1 rounded-lg transition-all ${comment.likes?.includes(user.uid) ? 'text-emerald-500 bg-emerald-500/10' : 'text-zinc-300 hover:text-emerald-500'}`}
+                                          >
+                                            <Check className="w-4 h-4 stroke-[3px]" />
+                                            <span className="text-[8px] font-black uppercase">{t('plans.read')}</span>
+                                          </button>
+                                        )}
+                                        {/* Show indicator if liked by others and user is the author */}
+                                        {user && comment.userId === user.uid && comment.likes && comment.likes.length > 0 && (
+                                          <div className="flex flex-col items-center gap-0.5 p-1 text-emerald-500">
+                                            <Check className="w-4 h-4 stroke-[3px]" />
+                                            <span className="text-[8px] font-black uppercase">{t('plans.read')}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  <div className="flex gap-2">
+                                    <input
+                                      type="text"
+                                      value={commentInput}
+                                      onChange={(e) => setCommentInput(e.target.value)}
+                                      placeholder={t('plans.add_comment')}
+                                      className="flex-1 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl py-2 px-4 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-all font-medium italic"
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') handleAddComment(currentPlan.id, item.id);
+                                      }}
+                                    />
+                                    <button
+                                      onClick={() => handleAddComment(currentPlan.id, item.id)}
+                                      disabled={!commentInput.trim()}
+                                      className="p-2 bg-emerald-500 text-black rounded-xl disabled:opacity-20 transition-all hover:scale-110 active:scale-95"
+                                    >
+                                      <Check className="w-4 h-4 stroke-[3px]" />
+                                    </button>
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
                           </div>
                         </motion.div>
                       ))
@@ -1054,7 +1285,12 @@ function App() {
         {showCreateModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-0">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowCreateModal(false)} className="absolute inset-0 bg-white/60 dark:bg-zinc-950/95 backdrop-blur-md" />
-            <motion.div initial={{ opacity: 0, scale: 0.9, y: 40 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 40 }} className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-[40px] border border-zinc-200 dark:border-zinc-800 p-10 shadow-2xl overflow-hidden">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 40 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.9, y: 40 }} 
+              className="relative w-full max-w-md max-h-[90vh] bg-white dark:bg-zinc-900 rounded-[40px] border border-zinc-200 dark:border-zinc-800 p-8 sm:p-10 shadow-2xl overflow-y-auto scrollbar-hide"
+            >
               <div className="absolute top-0 left-0 w-full h-2 bg-emerald-500" />
               <button onClick={() => setShowCreateModal(false)} className="absolute top-8 right-8 text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors">
                 <X className="w-6 h-6" />
@@ -1073,6 +1309,37 @@ function App() {
                     className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl py-5 px-6 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-all font-bold italic text-lg text-zinc-900 dark:text-white placeholder:text-zinc-300 dark:placeholder:text-zinc-700 shadow-inner"
                     autoFocus
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest ml-1">{t('plans.category')}</label>
+                  <div className="flex flex-wrap gap-2">
+                    {CATEGORIES.map(cat => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setNewPlanCategory(cat)}
+                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${newPlanCategory === cat ? 'bg-emerald-500 text-black' : 'bg-zinc-50 dark:bg-zinc-950 text-zinc-400 border border-zinc-200 dark:border-zinc-800'}`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest ml-1">{t('plans.select_color')}</label>
+                  <div className="flex flex-wrap gap-3">
+                    {COLORS.map(color => (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setNewPlanColor(color)}
+                        className={`w-8 h-8 rounded-full transition-all ${newPlanColor === color ? 'ring-2 ring-offset-2 ring-zinc-400 dark:ring-zinc-600 scale-110' : 'opacity-60 hover:opacity-100'}`}
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -1100,6 +1367,22 @@ function App() {
                         reader.readAsDataURL(file);
                       }
                     }} />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest ml-1">{t('plans.recurring')}</label>
+                  <div className="flex flex-wrap gap-2">
+                    {(['none', 'daily', 'weekly', 'monthly', 'yearly'] as const).map(type => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setNewPlanRecurring(type)}
+                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${newPlanRecurring === type ? 'bg-emerald-500 text-black' : 'bg-zinc-50 dark:bg-zinc-950 text-zinc-400 border border-zinc-200 dark:border-zinc-800'}`}
+                      >
+                        {t(`plans.recurring_${type}`)}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -1133,7 +1416,12 @@ function App() {
         {showEditModal && editingItem && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-0">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setShowEditModal(false); setEditingItem(null); }} className="absolute inset-0 bg-white/60 dark:bg-zinc-950/95 backdrop-blur-md" />
-            <motion.div initial={{ opacity: 0, scale: 0.9, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 30 }} className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-[32px] border border-zinc-200 dark:border-zinc-800 p-10 shadow-2xl overflow-hidden">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 30 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.9, y: 30 }} 
+              className="relative w-full max-w-md max-h-[90vh] bg-white dark:bg-zinc-900 rounded-[32px] border border-zinc-200 dark:border-zinc-800 p-8 sm:p-10 shadow-2xl overflow-y-auto scrollbar-hide"
+            >
               <h2 className="text-3xl font-black italic uppercase tracking-tighter mb-8 text-zinc-900 dark:text-white">{t('common.edit')}</h2>
               <input
                 type="text"

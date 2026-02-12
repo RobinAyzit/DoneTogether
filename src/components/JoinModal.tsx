@@ -63,7 +63,7 @@ export function JoinModal({ onClose, onJoin, user, userProfile }: JoinModalProps
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white dark:bg-zinc-900 rounded-[32px] border border-zinc-200 dark:border-zinc-800 max-w-md w-full p-10 relative shadow-2xl"
+                className="bg-white dark:bg-zinc-900 rounded-[32px] border border-zinc-200 dark:border-zinc-800 max-w-md w-full max-h-[90vh] p-8 sm:p-10 relative shadow-2xl overflow-y-auto scrollbar-hide"
             >
                 <button
                     onClick={onClose}
