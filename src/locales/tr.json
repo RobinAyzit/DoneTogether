@@ -54,6 +54,12 @@
         "language": "Dil",
         "theme": "Tema",
         "dark": "Koyu",
-        "light": "Açık"
+        "light": "Açık",
+        "change_photo": "Profil fotoğrafını değiştir",
+        "photo_updated": "Profil fotoğrafı güncellendi!",
+        "photo_update_error": "Profil fotoğrafı güncellenemedi",
+        "edit_name": "Adı düzenle",
+        "name_updated": "Ad güncellendi!",
+        "name_update_error": "Ad güncellenemedi"
     }
 }

@@ -48,7 +48,7 @@ function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
-  const { user, userProfile, loading: authLoading, error: authError, signInWithGoogle, signOut, isAuthenticated } = useAuth();
+  const { user, userProfile, loading: authLoading, error: authError, signInWithGoogle, signOut, updateProfilePhoto, updateDisplayName, isAuthenticated } = useAuth();
   const { plans } = usePlans(user?.uid);
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
   const { plan: currentPlan } = usePlan(currentPlanId);
@@ -80,6 +80,9 @@ function App() {
   const [newPlanCategory, setNewPlanCategory] = useState('');
   const [newPlanColor, setNewPlanColor] = useState('#10b981'); // Default emerald
   const [newPlanRecurring, setNewPlanRecurring] = useState<'daily' | 'weekly' | 'monthly' | 'yearly' | 'none'>('none');
+  const [updatingProfilePhoto, setUpdatingProfilePhoto] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [newDisplayName, setNewDisplayName] = useState('');
 
   const CATEGORIES = ['Shopping', 'Home', 'Work', 'Personal', 'Fitness', 'Travel'];
   const COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#f59e0b', '#ec4899'];
@@ -390,6 +393,37 @@ function App() {
       console.error('Error toggling comment like:', err);
     }
   };
+
+  const handleUpdateProfilePhoto = async (file: File) => {
+    if (!updateProfilePhoto || updatingProfilePhoto) return;
+    
+    setUpdatingProfilePhoto(true);
+    try {
+      const compressedImage = await compressAndToBase64(file);
+      await updateProfilePhoto(compressedImage);
+      showToast(t('profile.photo_updated') || 'Profilbild uppdaterad!');
+    } catch (error) {
+      console.error('Error updating profile photo:', error);
+      showToast(t('profile.photo_update_error') || 'Kunde inte uppdatera profilbild');
+    } finally {
+      setUpdatingProfilePhoto(false);
+    }
+  };
+
+  const handleUpdateDisplayName = async () => {
+    if (!updateDisplayName || !newDisplayName.trim()) return;
+    
+    try {
+      await updateDisplayName(newDisplayName.trim());
+      setEditingName(false);
+      setNewDisplayName('');
+      showToast(t('profile.name_updated') || 'Namn uppdaterat!');
+    } catch (error) {
+      console.error('Error updating display name:', error);
+      showToast(t('profile.name_update_error') || 'Kunde inte uppdatera namn');
+    }
+  };
+
   const activePlans = filteredPlans.filter((p) => !p.completed);
   const completedPlans = filteredPlans.filter((p) => p.completed);
 
@@ -1037,7 +1071,7 @@ function App() {
                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-500/5 rounded-full blur-[80px]" />
 
                 <div className="relative z-10 flex flex-col items-center text-center">
-                  <div className="relative mb-6">
+                  <div className="relative mb-6 group/photo">
                     {userProfile.photoURL ? (
                       <img src={userProfile.photoURL} alt="" className="w-32 h-32 rounded-[40px] border-4 border-emerald-500/20 p-1 group-hover:scale-105 transition-transform duration-500 shadow-xl" />
                     ) : (
@@ -1045,8 +1079,38 @@ function App() {
                         {userProfile.displayName?.[0]?.toUpperCase()}
                       </div>
                     )}
+                    <label 
+                      htmlFor="profile-photo-upload"
+                      className="absolute bottom-0 right-0 p-3 rounded-2xl bg-emerald-500 text-black cursor-pointer hover:scale-110 active:scale-95 transition-all shadow-lg opacity-0 group-hover/photo:opacity-100"
+                      title={t('profile.change_photo') || 'Ändra profilbild'}
+                    >
+                      <Camera className="w-5 h-5" />
+                    </label>
+                    <input
+                      id="profile-photo-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleUpdateProfilePhoto(file);
+                        }
+                      }}
+                      disabled={updatingProfilePhoto}
+                    />
                   </div>
                   <h3 className="text-3xl font-black italic uppercase tracking-tighter mb-1 text-zinc-900 dark:text-white">{userProfile.displayName}</h3>
+                  <button
+                    onClick={() => {
+                      setEditingName(true);
+                      setNewDisplayName(userProfile.displayName);
+                    }}
+                    className="text-emerald-500 hover:text-emerald-600 text-xs font-bold uppercase tracking-wider flex items-center gap-1 mb-2 transition-colors"
+                  >
+                    <Pencil className="w-3 h-3" />
+                    {t('profile.edit_name') || 'Redigera namn'}
+                  </button>
                   <p className="text-zinc-500 dark:text-zinc-400 text-sm font-medium tracking-tight mb-10">{userProfile.email}</p>
 
                   <div className="grid grid-cols-2 gap-4 w-full mb-8">
@@ -1388,6 +1452,39 @@ function App() {
               <div className="pt-8 flex gap-3">
                 <button onClick={() => { setShowEditModal(false); setEditingItem(null); }} className="flex-1 py-5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-200 dark:hover:bg-zinc-700 transition">{t('common.cancel')}</button>
                 <button onClick={() => { const input = document.getElementById('edit-item-input') as HTMLInputElement; handleEditItem(editingItem.planId, editingItem.item.id, input.value); }} className="flex-[1.5] py-5 bg-emerald-500 text-black rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">{t('common.save')}</button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Edit Name Modal */}
+        {editingName && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-0">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setEditingName(false); setNewDisplayName(''); }} className="absolute inset-0 bg-white/60 dark:bg-zinc-950/95 backdrop-blur-md" />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 30 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.9, y: 30 }} 
+              className="relative w-full max-w-md max-h-[90vh] bg-white dark:bg-zinc-900 rounded-[32px] border border-zinc-200 dark:border-zinc-800 p-8 sm:p-10 shadow-2xl overflow-y-auto scrollbar-hide"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-3xl font-black italic uppercase tracking-tighter mb-8 text-zinc-900 dark:text-white">{t('profile.edit_name') || 'Redigera namn'}</h2>
+              <input
+                type="text"
+                value={newDisplayName}
+                onChange={(e) => setNewDisplayName(e.target.value)}
+                placeholder={userProfile?.displayName}
+                className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl py-5 px-6 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-all font-bold italic text-lg text-zinc-900 dark:text-white shadow-inner"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleUpdateDisplayName();
+                  }
+                }}
+              />
+              <div className="pt-8 flex gap-3">
+                <button onClick={() => { setEditingName(false); setNewDisplayName(''); }} className="flex-1 py-5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-200 dark:hover:bg-zinc-700 transition">{t('common.cancel')}</button>
+                <button onClick={handleUpdateDisplayName} disabled={!newDisplayName.trim()} className="flex-[1.5] py-5 bg-emerald-500 text-black rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">{t('common.save')}</button>
               </div>
             </motion.div>
           </div>

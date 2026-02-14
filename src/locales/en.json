@@ -53,6 +53,12 @@
         "language": "Language",
         "theme": "Theme",
         "dark": "Dark",
-        "light": "Light"
+        "light": "Light",
+        "change_photo": "Change profile picture",
+        "photo_updated": "Profile picture updated!",
+        "photo_update_error": "Could not update profile picture",
+        "edit_name": "Edit name",
+        "name_updated": "Name updated!",
+        "name_update_error": "Could not update name"
     }
 }

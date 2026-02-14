@@ -70,6 +70,12 @@
         "language": "Språk",
         "theme": "Tema",
         "dark": "Mörkt",
-        "light": "Ljust"
+        "light": "Ljust",
+        "change_photo": "Ändra profilbild",
+        "photo_updated": "Profilbild uppdaterad!",
+        "photo_update_error": "Kunde inte uppdatera profilbild",
+        "edit_name": "Redigera namn",
+        "name_updated": "Namn uppdaterat!",
+        "name_update_error": "Kunde inte uppdatera namn"
     }
 }

@@ -95,6 +95,44 @@ export function useAuth() {
         }
     };
 
+    const updateProfilePhoto = async (photoURL: string) => {
+        try {
+            if (!user) return;
+            setError(null);
+            
+            const userRef = doc(db, 'users', user.uid);
+            await setDoc(userRef, { photoURL }, { merge: true });
+            
+            // Update local state
+            if (userProfile) {
+                setUserProfile({ ...userProfile, photoURL });
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ett fel uppstod');
+            console.error('Update profile photo error:', err);
+            throw err;
+        }
+    };
+
+    const updateDisplayName = async (displayName: string) => {
+        try {
+            if (!user) return;
+            setError(null);
+            
+            const userRef = doc(db, 'users', user.uid);
+            await setDoc(userRef, { displayName }, { merge: true });
+            
+            // Update local state
+            if (userProfile) {
+                setUserProfile({ ...userProfile, displayName });
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ett fel uppstod');
+            console.error('Update display name error:', err);
+            throw err;
+        }
+    };
+
     return {
         user,
         userProfile,
@@ -102,6 +140,8 @@ export function useAuth() {
         error,
         signInWithGoogle,
         signOut,
+        updateProfilePhoto,
+        updateDisplayName,
         isAuthenticated: !!user,
     };
 }
