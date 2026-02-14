@@ -836,12 +836,6 @@ function App() {
                                       {t('plans.fixed_by', { name: item.checkedBy })}
                                     </div>
                                   )}
-                                  {item.deadline && (
-                                    <div className={`text-[10px] font-black uppercase tracking-[0.1em] px-2 py-0.5 rounded flex items-center gap-1 ${item.checked ? 'bg-zinc-100 text-zinc-400' : item.deadline.toMillis() < Date.now() ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'}`}>
-                                      <Calendar className="w-3 h-3" />
-                                      {item.deadline.toDate().toLocaleDateString('sv-SE')}
-                                    </div>
-                                  )}
                                   {item.recurring && item.recurring !== 'none' && (
                                     <div className={`text-[10px] font-black uppercase tracking-[0.1em] px-2 py-0.5 rounded flex items-center gap-1 ${item.checked ? 'bg-zinc-100 text-zinc-400' : 'bg-blue-500/10 text-blue-500'}`}>
                                       <Repeat className="w-3 h-3" />
