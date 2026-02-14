@@ -4,13 +4,13 @@ import { initializeFirestore } from 'firebase/firestore';
 import { getMessaging } from 'firebase/messaging';
 
 const firebaseConfig = {
-    apiKey: "AIzaSyABaCKEfAaQbV458rrwvB4Rq_5Sxd6wbKI",
-    authDomain: "testar-6813b.firebaseapp.com",
-    projectId: "testar-6813b",
-    storageBucket: "testar-6813b.firebasestorage.app",
-    messagingSenderId: "1088645153772",
-    appId: "1:1088645153772:web:ed07fc9167adb5a490f6c9",
-    measurementId: "G-CNQS1R2F5V"
+    apiKey: "AIzaSyCA_1UxB7z86TvyIEpgqnTwnUgqOWTEf_4",
+    authDomain: "donetogether-v1.firebaseapp.com",
+    projectId: "donetogether-v1",
+    storageBucket: "donetogether-v1.firebasestorage.app",
+    messagingSenderId: "677287957451",
+    appId: "1:677287957451:web:812a897c8f906a63b8dc4e",
+    measurementId: "G-CL4ST1C496"
 };
 
 // Initialize Firebase
