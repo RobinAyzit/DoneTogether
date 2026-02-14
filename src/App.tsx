@@ -30,8 +30,7 @@ import { FriendsModal } from './components/FriendsModal';
 import { ShareModal } from './components/ShareModal';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
 import type { Plan, Item } from './types';
-import { Timestamp } from 'firebase/firestore';
-import { Calendar, Repeat, MessageCircle, Tag } from 'lucide-react';
+import { Repeat, MessageCircle, Tag } from 'lucide-react';
 
 const EMOJIS = ['❤️', '🔥', '💪', '🙏', '😂', '💯']; // Reactions supported by the app
 
@@ -80,8 +79,6 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [newPlanCategory, setNewPlanCategory] = useState('');
   const [newPlanColor, setNewPlanColor] = useState('#10b981'); // Default emerald
-  const [itemDeadline, setItemDeadline] = useState<string>('');
-  const [itemRecurring, setItemRecurring] = useState<'daily' | 'weekly' | 'monthly' | 'yearly' | 'none'>('none');
   const [newPlanRecurring, setNewPlanRecurring] = useState<'daily' | 'weekly' | 'monthly' | 'yearly' | 'none'>('none');
 
   const CATEGORIES = ['Shopping', 'Home', 'Work', 'Personal', 'Fitness', 'Travel'];
@@ -297,13 +294,9 @@ function App() {
 
       if (!user || !userProfile) return;
 
-      const deadline = itemDeadline ? Timestamp.fromDate(new Date(itemDeadline)) : undefined;
-
-      await addItemToPlan(planId, text.trim(), user.uid, userProfile.displayName, imageUrl, deadline, itemRecurring);
+      await addItemToPlan(planId, text.trim(), user.uid, userProfile.displayName, imageUrl, undefined, 'none');
       setAddInput('');
       setItemFile(null);
-      setItemDeadline('');
-      setItemRecurring('none');
       showToast(t('plans.item_added'));
     } catch (error) {
       console.error('Error adding item:', error);
@@ -563,6 +556,18 @@ function App() {
                               </span>
                             )}
                           </div>
+                          {plan.ownerId === user?.uid && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeletePlan(plan.id);
+                              }}
+                              className="opacity-0 group-hover:opacity-100 p-2 rounded-xl text-zinc-400 dark:text-zinc-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all relative z-20"
+                              title={t('plans.delete_plan') || 'Ta bort plan'}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                         {plan.imageUrl && (
                           <div className="absolute top-0 right-0 w-32 h-full opacity-5 dark:opacity-10 group-hover:opacity-10 dark:group-hover:opacity-20 transition-opacity">
@@ -762,43 +767,6 @@ function App() {
                             if (file) setItemFile(file);
                           }} />
                         </label>
-                          {/* Deadline - ONLY show when not recurring */}
-                          {itemRecurring === 'none' && (
-                            <div className="relative group/deadline">
-                              <label className={`p-1.5 rounded-lg transition-all cursor-pointer border ${itemDeadline ? 'bg-emerald-500 text-black border-emerald-600' : 'bg-zinc-50 dark:bg-zinc-950 text-zinc-500 dark:text-zinc-600 border-zinc-200 dark:border-zinc-800 hover:text-emerald-500'}`}>
-                                <Calendar className="w-5 h-5" />
-                                <input
-                                  type="date"
-                                  className="absolute inset-0 opacity-0 cursor-pointer"
-                                  value={itemDeadline}
-                                  onChange={(e) => setItemDeadline(e.target.value)}
-                                />
-                              </label>
-                              {itemDeadline && (
-                                <button
-                                  type="button"
-                                  onClick={() => setItemDeadline('')}
-                                  className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 shadow-lg border border-white dark:border-zinc-950"
-                                >
-                                  <X className="w-2 h-2" />
-                                </button>
-                              )}
-                            </div>
-                          )}
-                        <div className="relative group/recurring">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const types: ('none' | 'daily' | 'weekly' | 'monthly' | 'yearly')[] = ['none', 'daily', 'weekly', 'monthly', 'yearly'];
-                              const next = types[(types.indexOf(itemRecurring) + 1) % types.length];
-                              setItemRecurring(next);
-                            }}
-                            className={`p-1.5 rounded-lg transition-all border ${itemRecurring !== 'none' ? 'bg-emerald-500 text-black border-emerald-600' : 'bg-zinc-50 dark:bg-zinc-950 text-zinc-500 dark:text-zinc-600 border-zinc-200 dark:border-zinc-800 hover:text-emerald-500'}`}
-                            title={t(`plans.recurring_${itemRecurring}`)}
-                          >
-                            <Repeat className="w-5 h-5" />
-                          </button>
-                        </div>
                         {itemFile && (
                           <div className="relative">
                             <img src={URL.createObjectURL(itemFile)} className="w-7 h-7 rounded-lg border border-emerald-500 object-cover" alt="" />
