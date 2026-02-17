@@ -892,25 +892,25 @@ function App() {
                         </div>
                         <div className="flex-1 text-left">
                           <h4 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-tight mb-2">
-                            The Wall of Fame
+                            {t('profile.wall_of_fame.title')}
                           </h4>
                           <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200 mb-3 leading-relaxed">
-                            Support the Development & Join the Credits ☕
+                            {t('profile.wall_of_fame.subtitle')} ☕
                           </p>
                           <p className="text-[10px] text-zinc-700 dark:text-zinc-300 leading-relaxed mb-2">
-                            I'm developing this project independently, and your support helps me improve the code and keep it free for everyone.
+                            {t('profile.wall_of_fame.text1')}
                           </p>
                           <p className="text-[10px] text-zinc-700 dark:text-zinc-300 leading-relaxed mb-2">
-                            As a token of my gratitude, everyone who supports me with a coffee will be featured in the "Special Thanks" section of my next project!
+                            {t('profile.wall_of_fame.text2')}
                           </p>
                           <p className="text-[10px] text-zinc-700 dark:text-zinc-300 leading-relaxed mb-2">
-                            Please include your name or a signature in your message so I can give you the credit you deserve. Your support is what makes future development possible.
+                            {t('profile.wall_of_fame.text3')}
                           </p>
                           <p className="text-[10px] text-zinc-700 dark:text-zinc-300 leading-relaxed mb-2">
-                            Your support empowers me to keep building and refining the tools you love.
+                            {t('profile.wall_of_fame.text4')}
                           </p>
                           <p className="text-[9px] text-zinc-600 dark:text-zinc-400 italic font-semibold">
-                            — Robin Ayzit
+                            {t('profile.wall_of_fame.signature')}
                           </p>
                         </div>
                       </div>
