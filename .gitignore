@@ -32,3 +32,6 @@ dist-ssr
 # Android keystore files (SENSITIVE!)
 *.keystore
 *.jks
+
+# Firebase private documentation
+FireBase/
