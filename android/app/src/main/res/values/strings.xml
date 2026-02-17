@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">DoneTogether</string>
+    <string name="title_activity_main">DoneTogether</string>
+    <string name="package_name">nrn.DoneTogether.com</string>
+    <string name="custom_url_scheme">nrn.DoneTogether.com</string>
+    <string name="server_client_id">677287957451-6vja60qu97qvobgr61li4b3dlrj1pslq.apps.googleusercontent.com</string>
+</resources>
