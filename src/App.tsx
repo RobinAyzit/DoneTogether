@@ -927,7 +927,10 @@ function App() {
                   {/* Copyright Footer */}
                   <div className="w-full text-center py-6 mt-4">
                     <p className="text-[10px] text-zinc-400 dark:text-zinc-600 font-medium tracking-wide">
-                      Created by 2026 © nRn World
+                      Created 2026 by © nRn World
+                    </p>
+                    <p className="text-[9px] text-zinc-400 dark:text-zinc-600 font-medium tracking-wide mt-1">
+                      bynrnworld@gmail.com
                     </p>
                   </div>
                 </div>
