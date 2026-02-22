@@ -8,7 +8,8 @@
         "delete": "Radera",
         "edit": "Redigera",
         "unknown": "Okänd",
-        "or": "ELLER"
+        "or": "ELLER",
+        "home": "HEM"
     },
     "auth": {
         "login": "Logga in",
