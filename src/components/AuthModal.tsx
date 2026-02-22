@@ -77,6 +77,26 @@ export function AuthModal({ onSignIn, onClose, error }: AuthModalProps) {
                     </svg>
                     {t('auth.continue_google')}
                 </button>
+
+                <div className="relative py-4">
+                    <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-zinc-200 dark:border-zinc-800"></div>
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase font-bold italic tracking-widest">
+                        <span className="bg-white dark:bg-zinc-900 px-4 text-zinc-400">{t('common.or')}</span>
+                    </div>
+                </div>
+
+                <button
+                    onClick={() => {
+                        // TODO: Implement email login
+                        console.log('Email login not implemented yet');
+                    }}
+                    className="w-full h-14 rounded-2xl border-2 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white font-black italic uppercase tracking-widest flex items-center justify-center gap-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all"
+                >
+                    <LogIn className="w-5 h-5" />
+                    {t('auth.login_email')}
+                </button>
             </motion.div>
         </div>
     );
