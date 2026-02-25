@@ -729,10 +729,7 @@ function App() {
                                 <button
                                   type="button"
                                   onClick={async () => {
-                                    if (permissionStatus !== 'granted') {
-                                      showToast('GPS-behörighet krävs');
-                                      return;
-                                    }
+                                    console.log('GPS button clicked, permission status:', permissionStatus);
                                     const location = await getCurrentLocation();
                                     if (location) {
                                       setSelectedAddLocation({
