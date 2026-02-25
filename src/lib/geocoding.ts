@@ -2,6 +2,7 @@ export interface GeocodingResult {
     lat: string;
     lon: string;
     display_name: string;
+    name?: string;
     address?: {
         road?: string;
         house_number?: string;
@@ -53,55 +54,46 @@ async function loadGoogleMaps(): Promise<void> {
 
 export async function searchAddress(query: string): Promise<GeocodingResult[]> {
     if (!query || query.length < 3) return [];
-    
+
     try {
         await loadGoogleMaps();
-        
-        if (!(window as any).google) return [];
 
-        const geocoder = new (window as any).google.maps.Geocoder();
-        
+        if (!(window as any).google || !(window as any).google.maps || !(window as any).google.maps.places) return [];
+
+        // Use PlacesService instead of Geocoder for better POI results (malls, buildings, etc)
+        const dummyDiv = document.createElement('div');
+        const service = new (window as any).google.maps.places.PlacesService(dummyDiv);
+
         return new Promise((resolve) => {
-            geocoder.geocode({ address: query }, (results: any[], status: string) => {
+            service.textSearch({ query: query }, (results: any[], status: string) => {
                 if (status === 'OK' && results) {
                     const mappedResults = results.map(result => {
-                        const addressComponents = result.address_components;
-                        
-                        const getComponent = (type: string) => {
-                            const comp = addressComponents.find((c: any) => c.types.includes(type));
-                            return comp ? comp.long_name : undefined;
-                        };
-
-                        const street = getComponent('route');
-                        const number = getComponent('street_number');
-                        const city = getComponent('locality') || getComponent('postal_town');
-                        const town = getComponent('administrative_area_level_2');
-                        const country = getComponent('country');
-                        const postcode = getComponent('postal_code');
-
                         return {
                             lat: result.geometry.location.lat().toString(),
                             lon: result.geometry.location.lng().toString(),
                             display_name: result.formatted_address,
+                            name: result.name, // The actual name of the place (e.g. "Kista Galleria")
                             address: {
-                                road: street,
-                                house_number: number,
-                                city: city,
-                                town: town,
-                                postcode: postcode,
-                                country: country
+                                // For textSearch, we don't get granular address components easily
+                                // unless we call getDetails, but formatted_address is usually enough.
+                                road: '',
+                                house_number: '',
+                                city: '',
+                                town: '',
+                                postcode: '',
+                                country: ''
                             }
                         };
                     });
                     resolve(mappedResults);
                 } else {
-                    console.log('Geocoding failed or no results:', status);
+                    console.log('Places search failed or no results:', status);
                     resolve([]);
                 }
             });
         });
     } catch (error) {
-        console.error('Error searching address with Google Maps:', error);
+        console.error('Error searching address with Google Places:', error);
         return [];
     }
 }
@@ -112,7 +104,7 @@ export async function reverseGeocode(lat: number, lon: number): Promise<string> 
         if (!(window as any).google) return `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
 
         const geocoder = new (window as any).google.maps.Geocoder();
-        
+
         return new Promise((resolve) => {
             geocoder.geocode({ location: { lat, lng: lon } }, (results: any[], status: string) => {
                 if (status === 'OK' && results && results[0]) {
