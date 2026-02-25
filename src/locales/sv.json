@@ -9,7 +9,33 @@
         "edit": "Redigera",
         "unknown": "Okänd",
         "or": "ELLER",
-        "home": "HEM"
+        "home": "HEM",
+        "friends": "VÄNNER"
+    },
+    "friends": {
+        "title": "Vänner",
+        "subtitle": "Hitta dina utförare",
+        "add_new": "Lägg till ny vän",
+        "search_placeholder": "Sök efter Gmail-adress...",
+        "search_btn": "Sök",
+        "searching": "Söker...",
+        "not_found": "Ingen användare hittades med den e-postadressen",
+        "add_self_error": "Du kan inte lägga till dig själv som vän",
+        "search_error": "Ett fel uppstod vid sökningen",
+        "request_sent": "Vänförfrågan skickad!",
+        "request_accepted": "Vänförfrågan accepterad!",
+        "request_declined": "Vänförfrågan avvisad",
+        "remove_confirm": "Är du säker på att du vill ta bort denna vän?",
+        "friend_removed": "Vän borttagen",
+        "already_friends": "Vänner",
+        "pending": "Väntar...",
+        "incoming_requests": "Nya förfrågningar ({{count}})",
+        "my_friends": "Mina vänner ({{count}})",
+        "loading": "Laddar...",
+        "no_friends": "Inga vänner än. Sök efter dina betrodda medhjälpare!",
+        "accept": "Acceptera",
+        "decline": "Avvisa",
+        "remove": "Ta bort"
     },
     "auth": {
         "login": "Logga in",
@@ -56,7 +82,8 @@
         "join_success": "Gick med i {{name}}!",
         "join_error": "Kunde inte gå med i planen",
         "update_error": "Kunde inte uppdatera",
-        "create_error": "Kunde inte skapa planen"
+        "create_error": "Kunde inte skapa planen",
+        "plan_not_found": "Planen kunde inte hittas."
     },
     "profile": {
         "title": "Profil",
@@ -64,14 +91,30 @@
         "theme": "Tema",
         "dark": "Mörkt",
         "light": "Ljust",
-        "wall_of_fame": {
-            "title": "Hedersväggen",
-            "subtitle": "Stöd Utvecklingen & Bli Med i Krediterna",
-            "text1": "Jag utvecklar detta projekt självständigt, och ditt stöd hjälper mig att förbättra koden och hålla den gratis för alla.",
-            "text2": "Som ett tecken på min tacksamhet kommer alla som stödjer mig med ett kaffe att visas i \"Särskilt Tack\"-sektionen i mitt nästa projekt!",
-            "text3": "Vänligen inkludera ditt namn eller en signatur i ditt meddelande så att jag kan ge dig den kredit du förtjänar. Ditt stöd är det som möjliggör framtida utveckling.",
-            "text4": "Ditt stöd ger mig kraft att fortsätta bygga och förfina verktygen du älskar.",
-            "signature": "— Robin Ayzit"
-        }
+        "saved_places": "Sparade Platser",
+        "save_gps": "Spara GPS",
+        "home_place": "Hem",
+        "work_place": "Jobb",
+        "fav1_place": "Favorit 1",
+        "fav2_place": "Favorit 2",
+        "no_place_saved": "Ingen plats sparad",
+        "search_address_placeholder": "Sök adress manuellt...",
+        "gps_saved_toast": "{{type}} uppdaterad!",
+        "gps_reminder": "GPS-påminnelse",
+        "use_current_location": "Använd min nuvarande plats",
+        "remove_location": "Ta bort plats",
+        "location_selected_toast": "{{type}} vald!",
+        "current_location_name": "Min position",
+        "manual_location_name": "Vald plats",
+        "gps_radius_text": "Notis skickas när du är inom 100m från denna plats."
+    },
+    "wall_of_fame": {
+        "title": "Hedersväggen",
+        "subtitle": "Stöd Utvecklingen & Bli Med i Krediterna",
+        "text1": "Jag utvecklar detta projekt självständigt, och ditt stöd hjälper mig att förbättra koden och hålla den gratis för alla.",
+        "text2": "Som ett tecken på min tacksamhet kommer alla som stödjer mig med ett kaffe att visas i \"Särskilt Tack\"-sektionen i mitt nästa projekt!",
+        "text3": "Vänligen inkludera ditt namn eller en signatur i ditt meddelande så att jag kan ge dig den kredit du förtjänar. Ditt stöd är det som möjliggör framtida utveckling.",
+        "text4": "Ditt stöd ger mig kraft att fortsätta bygga och förfina verktygen du älskar.",
+        "signature": "— Robin Ayzit"
     }
 }

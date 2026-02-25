@@ -1,0 +1,156 @@
+import { useState, useEffect, useRef } from 'react';
+import { Search, MapPin } from 'lucide-react';
+import { searchAddress, type GeocodingResult } from '../lib/geocoding';
+
+interface AddressAutocompleteProps {
+    onSelect: (location: { latitude: number; longitude: number; address: string; name: string }) => void;
+    placeholder?: string;
+    className?: string;
+}
+
+export function AddressAutocomplete({ onSelect, placeholder = "Sök adress...", className = "" }: AddressAutocompleteProps) {
+    const [query, setQuery] = useState('');
+    const [results, setResults] = useState<GeocodingResult[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+    const wrapperRef = useRef<HTMLDivElement>(null);
+
+    // Debounce search
+    useEffect(() => {
+        const timeoutId = setTimeout(async () => {
+            if (query.length > 2) {
+                setIsSearching(true);
+                const searchResults = await searchAddress(query);
+                setResults(searchResults);
+                setIsSearching(false);
+                setIsOpen(true);
+            } else {
+                setResults([]);
+                setIsOpen(false);
+            }
+        }, 500); // 500ms debounce
+
+        return () => clearTimeout(timeoutId);
+    }, [query]);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+    const handleSelect = (result: GeocodingResult) => {
+        // Construct a better display name from address parts if available
+        let shortName = result.display_name.split(',')[0];
+        let fullName = result.display_name;
+        
+        if (result.address) {
+            const { road, house_number, city, town, village } = result.address;
+            const street = road || '';
+            const number = house_number || '';
+            const locality = city || town || village || '';
+            
+            if (street) {
+                shortName = `${street} ${number}`.trim();
+            }
+            
+            // If we have street and number, and city, make a nice full address
+            if (street && locality) {
+               // shortName is already set to street + number
+               // Keep fullName as the detailed one from nominatim, or construct a cleaner one?
+               // Nominatim's display_name is usually good but can be long.
+            }
+        }
+
+        const location = {
+            latitude: parseFloat(result.lat),
+            longitude: parseFloat(result.lon),
+            address: shortName, 
+            name: shortName
+        };
+        onSelect(location);
+        setQuery('');
+        setIsOpen(false);
+    };
+
+    return (
+        <div ref={wrapperRef} className={`relative w-full ${className}`}>
+            <div className="relative">
+                <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder={placeholder}
+                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg py-2 pl-9 pr-3 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500/20 text-zinc-900 dark:text-white"
+                />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
+                {isSearching && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                )}
+            </div>
+
+            {isOpen && results.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
+                    {results.map((result, i) => {
+                         // Construct a better display for the list item
+                         let mainText = result.display_name.split(',')[0];
+                         let subText = result.display_name;
+
+                         if (result.address) {
+                            const { road, house_number, postcode, city, town, village } = result.address;
+                            const street = road || '';
+                            const number = house_number || '';
+                            const locality = city || town || village || '';
+                            
+                            if (street) {
+                                mainText = `${street} ${number}`.trim();
+                            }
+                            
+                            // Construct a cleaner subtext: "Postcode City, Country"
+                            const parts = [];
+                            if (postcode) parts.push(postcode);
+                            if (locality) parts.push(locality);
+                            if (result.address.country) parts.push(result.address.country);
+                            
+                            if (parts.length > 0) {
+                                subText = parts.join(', ');
+                            }
+                         }
+
+                        return (
+                        <button
+                            key={i}
+                            onClick={() => handleSelect(result)}
+                            className="w-full text-left p-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 border-b border-zinc-100 dark:border-zinc-800 last:border-0 transition-colors group"
+                        >
+                            <div className="flex items-start gap-3">
+                                <MapPin className="w-4 h-4 text-zinc-400 group-hover:text-emerald-500 mt-0.5 flex-shrink-0" />
+                                <div>
+                                    <div className="text-xs font-bold text-zinc-900 dark:text-white truncate">
+                                        {mainText}
+                                    </div>
+                                    <div className="text-[10px] text-zinc-400 line-clamp-2 leading-tight">
+                                        {subText}
+                                    </div>
+                                </div>
+                            </div>
+                        </button>
+                    )})}
+                </div>
+            )}
+            
+            {isOpen && query.length > 2 && !isSearching && results.length === 0 && (
+                 <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl z-50 p-3 text-center">
+                    <p className="text-[10px] text-zinc-400 italic">Inga adresser hittades</p>
+                 </div>
+            )}
+        </div>
+    );
+}

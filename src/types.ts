@@ -1,9 +1,10 @@
 import { Timestamp } from 'firebase/firestore';
 
 export interface Reaction {
-    emoji: string;
     userId: string;
-    userName: string;
+    emoji: string;
+    userName?: string;
+    createdAt?: Timestamp;
 }
 
 export interface Item {
@@ -14,6 +15,13 @@ export interface Item {
     checkedByUid?: string;
     imageUrl?: string;
     reactions?: Reaction[];
+    location?: {
+        latitude: number;
+        longitude: number;
+        name: string;
+        radius: number; // in meters
+        active: boolean; // if tracking is enabled
+    };
 }
 
 export interface PlanMember {
@@ -47,6 +55,13 @@ export interface UserProfile {
     createdAt: Timestamp;
     fcmTokens?: string[];
     language?: string;
+    savedLocations?: {
+        home?: { latitude: number; longitude: number; address: string };
+        work?: { latitude: number; longitude: number; address: string };
+        fav1?: { latitude: number; longitude: number; address: string };
+        fav2?: { latitude: number; longitude: number; address: string };
+        customLabels?: { [key: string]: string };
+    };
 }
 
 export interface PlanInvite {

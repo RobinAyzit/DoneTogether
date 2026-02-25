@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { type User, signOut as firebaseSignOut, GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
-import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, Timestamp, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import type { UserProfile } from '../types';
 import { Capacitor } from '@capacitor/core';
@@ -15,46 +15,57 @@ export function useAuth() {
     const { i18n } = useTranslation();
 
     useEffect(() => {
+        let profileUnsubscribe: () => void;
+
         const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
             try {
                 setUser(firebaseUser);
                 if (firebaseUser) {
                     const userRef = doc(db, 'users', firebaseUser.uid);
-                    const userSnap = await getDoc(userRef);
-                    if (userSnap.exists()) {
-                        const profile = userSnap.data() as UserProfile;
-                        setUserProfile(profile);
-                        
-                        // Sync language from profile if it exists and is different
-                        // But only if we are on initial load (loading is true) or if the profile language is explicitly set
-                        // We check i18n.language against profile.language to avoid unnecessary updates
-                        if (profile.language && profile.language !== i18n.language) {
-                            i18n.changeLanguage(profile.language);
+                    
+                    // Listen for real-time updates to the user profile
+                    profileUnsubscribe = onSnapshot(userRef, async (docSnap) => {
+                        if (docSnap.exists()) {
+                            const profile = docSnap.data() as UserProfile;
+                            setUserProfile(profile);
+                            
+                            // Sync language from profile if it exists and is different
+                            if (profile.language && profile.language !== i18n.language) {
+                                i18n.changeLanguage(profile.language);
+                            }
+                        } else {
+                            const newProfile: UserProfile = {
+                                uid: firebaseUser.uid,
+                                email: firebaseUser.email || '',
+                                displayName: firebaseUser.displayName || 'User',
+                                photoURL: firebaseUser.photoURL || undefined,
+                                friends: [],
+                                createdAt: Timestamp.now(),
+                                language: i18n.language || 'en',
+                            };
+                            await setDoc(userRef, newProfile);
+                            setUserProfile(newProfile);
                         }
-                    } else {
-                        const newProfile: UserProfile = {
-                            uid: firebaseUser.uid,
-                            email: firebaseUser.email || '',
-                            displayName: firebaseUser.displayName || 'User',
-                            photoURL: firebaseUser.photoURL || undefined,
-                            friends: [],
-                            createdAt: Timestamp.now(),
-                            language: i18n.language || 'en',
-                        };
-                        await setDoc(userRef, newProfile);
-                        setUserProfile(newProfile);
-                    }
+                        setLoading(false);
+                    }, (err) => {
+                        console.error('Profile snapshot error:', err);
+                        setLoading(false);
+                    });
                 } else {
                     setUserProfile(null);
+                    if (profileUnsubscribe) profileUnsubscribe();
+                    setLoading(false);
                 }
             } catch (err) {
                 console.error('Auth state change error:', err);
-            } finally {
                 setLoading(false);
             }
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribe();
+            if (profileUnsubscribe) profileUnsubscribe();
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

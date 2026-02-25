@@ -162,13 +162,14 @@ export async function deletePlan(planId: string) {
     await deleteDoc(planRef);
 }
 
-export async function addItemToPlan(planId: string, text: string, userId: string, userName: string, imageUrl?: string): Promise<void> {
+export async function addItemToPlan(planId: string, text: string, userId: string, userName: string, imageUrl?: string, location?: Item['location']): Promise<void> {
     const planRef = doc(db, 'plans', planId);
     const newItem: Item = {
         id: Math.random().toString(36).substring(2, 11),
         text,
         checked: false,
-        imageUrl
+        imageUrl,
+        location
     };
     await updateDoc(planRef, {
         items: arrayUnion(newItem),
