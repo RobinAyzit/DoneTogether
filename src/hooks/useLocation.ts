@@ -17,26 +17,35 @@ export function useLocation(userId: string | undefined) {
     useEffect(() => {
         const startWatching = async () => {
             try {
-                // Request permission if needed
+                // 1. Request Location Permissions
+                console.log('Checking location permissions...');
                 let permission = await Geolocation.checkPermissions();
 
                 if (permission.location !== 'granted') {
-                    permission = await Geolocation.requestPermissions();
+                    console.log('Requesting location permissions...');
+                    permission = await Geolocation.requestPermissions({
+                        permissions: ['location', 'coarseLocation']
+                    });
                 }
 
-                // Request Local Notification permissions
-                let notifyPermission = await LocalNotifications.checkPermissions();
-                if (notifyPermission.display !== 'granted') {
-                    await LocalNotifications.requestPermissions();
-                }
-
+                console.log('Location permission result:', permission.location);
                 setPermissionStatus(permission.location);
 
                 if (permission.location !== 'granted') {
+                    console.log('Location permission not granted, skipping tracking.');
                     setIsTracking(false);
                     return;
                 }
 
+                // 2. Request Local Notification permissions (Only if location granted)
+                console.log('Checking notification permissions...');
+                let notifyPermission = await LocalNotifications.checkPermissions();
+                if (notifyPermission.display !== 'granted') {
+                    console.log('Requesting notification permissions...');
+                    await LocalNotifications.requestPermissions();
+                }
+
+                console.log('Permissions check complete, starting tracking.');
                 setIsTracking(true);
 
                 // Clear any existing watch
@@ -49,9 +58,6 @@ export function useLocation(userId: string | undefined) {
                     (position) => {
                         if (position) {
                             setCurrentPosition(position);
-                            // We need to pass the plans to checkGeofences, but they are in closure scope
-                            // This might be tricky with stale closures if plans update
-                            // So we might need to handle checkGeofences in a separate effect that depends on [position, plans]
                         }
                     }
                 );
