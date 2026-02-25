@@ -23,9 +23,7 @@ export function useLocation(userId: string | undefined) {
 
                 if (permission.location !== 'granted') {
                     console.log('Requesting location permissions...');
-                    permission = await Geolocation.requestPermissions({
-                        permissions: ['location', 'coarseLocation']
-                    });
+                    permission = await Geolocation.requestPermissions();
                 }
 
                 console.log('Location permission result:', permission.location);
@@ -54,8 +52,12 @@ export function useLocation(userId: string | undefined) {
                 }
 
                 watchIdRef.current = await Geolocation.watchPosition(
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 },
-                    (position) => {
+                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 3000 },
+                    (position, err) => {
+                        if (err) {
+                            console.error('Watch position error:', err);
+                            return;
+                        }
                         if (position) {
                             setCurrentPosition(position);
                         }
