@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { type User, signOut as firebaseSignOut, GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
-import { doc, getDoc, setDoc, Timestamp, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, Timestamp, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import type { UserProfile } from '../types';
 import { Capacitor } from '@capacitor/core';
@@ -22,13 +22,13 @@ export function useAuth() {
                 setUser(firebaseUser);
                 if (firebaseUser) {
                     const userRef = doc(db, 'users', firebaseUser.uid);
-                    
+
                     // Listen for real-time updates to the user profile
                     profileUnsubscribe = onSnapshot(userRef, async (docSnap) => {
                         if (docSnap.exists()) {
                             const profile = docSnap.data() as UserProfile;
                             setUserProfile(profile);
-                            
+
                             // Sync language from profile if it exists and is different
                             if (profile.language && profile.language !== i18n.language) {
                                 i18n.changeLanguage(profile.language);
@@ -73,15 +73,15 @@ export function useAuth() {
         try {
             setLoading(true);
             setError(null);
-            
+
             if (Capacitor.isNativePlatform()) {
                 const googleUser = await GoogleAuth.signIn();
                 const idToken = googleUser.authentication.idToken;
-                
+
                 if (!idToken) {
                     throw new Error("No idToken received from Google Auth");
                 }
-                
+
                 const credential = GoogleAuthProvider.credential(idToken);
                 await signInWithCredential(auth, credential);
             } else {
@@ -89,10 +89,10 @@ export function useAuth() {
                 provider.setCustomParameters({
                     prompt: 'select_account'
                 });
-                
+
                 await signInWithPopup(auth, provider);
             }
-            
+
         } catch (err: any) {
             console.error('Sign in error:', err);
             const errorMessage = err.message || "Something went wrong";
