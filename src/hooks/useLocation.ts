@@ -1,16 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Geolocation, type Position } from '@capacitor/geolocation';
-import { usePlans } from './useFirestore';
 
 // Check if we're in a web browser
 const isWeb = typeof window !== 'undefined' && !(window as any).Capacitor;
 
-const GEOFENCE_RADIUS = 100; // meters
-
 export function useLocation(userId: string | undefined) {
     const [currentPosition, setCurrentPosition] = useState<Position | null>(null);
     const [permissionStatus, setPermissionStatus] = useState<string>('prompt');
-    const { plans } = usePlans(userId);
     const [isTracking, setIsTracking] = useState(false);
     const watchIdRef = useRef<string | number | null>(null);
 
