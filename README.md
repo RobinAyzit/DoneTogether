@@ -24,11 +24,9 @@ DoneTogether är mer än bara en att-göra-lista. Det är ett **Smart Task**-ver
 
 ## 📸 Screenshots
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/RobinAyzit/DoneTogether/master/screenshot/login.png" alt="Login" width="200"/>
-  <img src="https://raw.githubusercontent.com/RobinAyzit/DoneTogether/master/screenshot/create.png" alt="Create Task" width="200"/>
-  <img src="https://raw.githubusercontent.com/RobinAyzit/DoneTogether/master/screenshot/creat2.png" alt="Task Details" width="200"/>
-</p>
+| Inloggning | Skapa uppgift | Uppgiftsdetaljer |
+|:----------:|:-------------:|:----------------:|
+| <img src="screenshot/login.png" alt="Inloggningsskärm" width="240"/> | <img src="screenshot/create.png" alt="Skapa uppgift" width="240"/> | <img src="screenshot/creat2.png" alt="Uppgiftsdetaljer" width="240"/> |
 
 ---
 
