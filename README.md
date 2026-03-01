@@ -24,7 +24,7 @@ DoneTogether är mer än bara en att-göra-lista. Det är ett **Smart Task**-ver
 
 ## 📸 Screenshots
 
-| Inloggning | Skapa uppgift | Uppgiftsdetaljer |
+| Login | Create Plan | Task details |
 |:----------:|:-------------:|:----------------:|
 | <img src="screenshot/login.png" alt="Inloggningsskärm" width="240"/> | <img src="screenshot/create.png" alt="Skapa uppgift" width="240"/> | <img src="screenshot/creat2.png" alt="Uppgiftsdetaljer" width="240"/> |
 
