@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Geolocation, type Position } from '@capacitor/geolocation';
-import { LocalNotifications } from '@capacitor/local-notifications';
 import { usePlans } from './useFirestore';
-import type { Item } from '../types';
 
 // Check if we're in a web browser
 const isWeb = typeof window !== 'undefined' && !(window as any).Capacitor;
@@ -30,23 +28,26 @@ export function useLocation(userId: string | undefined) {
                         return;
                     }
 
-                    // Check permission status
-                    const permission = await navigator.permissions.query({ name: 'geolocation' as any });
-                    console.log('Web geolocation permission:', permission.state);
-                    setPermissionStatus(permission.state as string);
-
-                    if (permission.state === 'denied') {
-                        console.log('Geolocation permission denied');
-                        return;
+                    // Check permission status (may not exist in all browsers, e.g. Safari)
+                    try {
+                        const permission = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
+                        console.log('Web geolocation permission:', permission.state);
+                        setPermissionStatus(permission.state);
+                        if (permission.state === 'denied') {
+                            console.log('Geolocation permission denied');
+                            return;
+                        }
+                        // Listen for permission changes
+                        permission.onchange = () => setPermissionStatus(permission.state);
+                    } catch (_) {
+                        // permissions.query not supported (e.g. Safari) – assume prompt, let getCurrentPosition trigger dialog
+                        setPermissionStatus('prompt');
                     }
 
-                    if (permission.state === 'prompt') {
-                        console.log('Will prompt for geolocation permission on first use');
-                    }
-
-                    // Start watching position
+                    // Start watching position (will prompt user on first fix if permission is 'prompt')
                     watchIdRef.current = navigator.geolocation.watchPosition(
                         (position) => {
+                            setPermissionStatus('granted'); // We got position, so permission was granted
                             const webPosition: Position = {
                                 coords: {
                                     latitude: position.coords.latitude,
@@ -63,7 +64,7 @@ export function useLocation(userId: string | undefined) {
                         },
                         (error) => {
                             console.error('Web geolocation error:', error);
-                            setPermissionStatus('denied');
+                            if (error.code === 1) setPermissionStatus('denied'); // PERMISSION_DENIED
                         },
                         {
                             enableHighAccuracy: true,
@@ -90,17 +91,6 @@ export function useLocation(userId: string | undefined) {
                         setIsTracking(false);
                         return;
                     }
-
-                    // 2. Request Local Notification permissions (Only if location granted)
-                    console.log('Checking notification permissions...');
-                    let notifyPermission = await LocalNotifications.checkPermissions();
-
-                    if (notifyPermission.display !== 'granted') {
-                        console.log('Requesting notification permissions...');
-                        await LocalNotifications.requestPermissions();
-                    }
-
-                    console.log('Notification permission result:', notifyPermission.display);
 
                     console.log('Permissions check complete, starting tracking.');
                     setIsTracking(true);
@@ -144,88 +134,14 @@ export function useLocation(userId: string | undefined) {
         };
     }, [userId]);
 
-    // Separate effect to check geofences when position or plans update
-    useEffect(() => {
-        if (currentPosition && plans) {
-            checkGeofences(currentPosition, plans);
-        }
-    }, [currentPosition, plans]);
-
-    // Check distance to all items with location
-    const checkGeofences = async (position: Position, currentPlans: any[]) => {
-        for (const plan of currentPlans) {
-            if (plan.completed) continue;
-
-            for (const item of plan.items) {
-                if (item.checked || !item.location || !item.location.active) continue;
-
-                // Skip if location data is missing or invalid
-                if (!item.location.latitude || !item.location.longitude) continue;
-
-                const distance = getDistanceFromLatLonInKm(
-                    position.coords.latitude,
-                    position.coords.longitude,
-                    item.location.latitude,
-                    item.location.longitude
-                ) * 1000; // convert to meters
-
-                if (distance <= (item.location.radius || GEOFENCE_RADIUS)) {
-                    // Trigger notification
-                    await triggerNotification(item);
-                }
-            }
-        }
-    };
-
-    const triggerNotification = async (item: Item) => {
-        // Check if we already notified recently to avoid spam (could use local storage)
-        const key = `notified_${item.id}`;
-        const lastNotified = localStorage.getItem(key);
-        const now = Date.now();
-
-        if (lastNotified && now - parseInt(lastNotified) < 3600000) { // 1 hour cooldown
-            return;
-        }
-
-        await LocalNotifications.schedule({
-            notifications: [{
-                title: '📍 Du är framme!',
-                body: `Kom ihåg: ${item.text}`,
-                id: Math.floor(Math.random() * 100000),
-                schedule: { at: new Date(Date.now() + 100) },
-                sound: 'beep.wav'
-            }]
-        });
-
-        localStorage.setItem(key, now.toString());
-    };
-
-    // Helper: Haversine formula
-    function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
-        var R = 6371; // Radius of the earth in km
-        var dLat = deg2rad(lat2 - lat1);  // deg2rad below
-        var dLon = deg2rad(lon2 - lon1);
-        var a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2)
-            ;
-        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        var d = R * c; // Distance in km
-        return d;
-    }
-
-    function deg2rad(deg: number) {
-        return deg * (Math.PI / 180);
-    }
-
+    // Get current location manually
     const getCurrentLocation = async () => {
         try {
             if (isWeb) {
                 return new Promise<Position>((resolve, reject) => {
-                    // Force prompt by using high accuracy and no cache
                     navigator.geolocation.getCurrentPosition(
                         (position) => {
+                            setPermissionStatus('granted');
                             const webPosition: Position = {
                                 coords: {
                                     latitude: position.coords.latitude,
@@ -242,24 +158,22 @@ export function useLocation(userId: string | undefined) {
                         },
                         (error) => {
                             console.error('Web geolocation error:', error);
-                            if (error.code === error.PERMISSION_DENIED) {
-                                alert('GPS-behörighet krävs. Vänligen tillåt platsåtkomst i din webbläsare och försök igen.');
-                            } else if (error.code === error.POSITION_UNAVAILABLE) {
-                                alert('GPS är inte tillgänglig på denna enhet.');
-                            } else if (error.code === error.TIMEOUT) {
-                                alert('GPS-timeout. Försök igen.');
-                            }
+                            if (error.code === 1) setPermissionStatus('denied'); // PERMISSION_DENIED
                             reject(error);
                         },
                         { 
                             enableHighAccuracy: true, 
                             timeout: 15000, 
-                            maximumAge: 0 // Force fresh location
+                            maximumAge: 0
                         }
                     );
                 });
             } else {
-                const coordinates = await Geolocation.getCurrentPosition();
+                const coordinates = await Geolocation.getCurrentPosition({
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                });
                 return coordinates;
             }
         } catch (error) {

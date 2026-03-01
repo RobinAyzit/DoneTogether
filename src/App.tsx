@@ -731,7 +731,7 @@ function App() {
                                   onClick={async () => {
                                     console.log('GPS button clicked, permission status:', permissionStatus);
                                     const location = await getCurrentLocation();
-                                    if (location) {
+                                    if (location && location.coords) {
                                       setSelectedAddLocation({
                                         latitude: location.coords.latitude,
                                         longitude: location.coords.longitude,
@@ -1515,12 +1515,12 @@ function App() {
                           <button
                             type="button"
                             onClick={async () => {
-                              if (permissionStatus !== 'granted') {
-                                showToast('GPS-behörighet krävs');
+                              if (permissionStatus === 'denied') {
+                                showToast('GPS nekad. Öppna inställningar och tillåt plats för appen.');
                                 return;
                               }
                               const location = await getCurrentLocation();
-                              if (location) {
+                              if (location && location.coords) {
                                 const newLocation = {
                                   latitude: location.coords.latitude,
                                   longitude: location.coords.longitude,
