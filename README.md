@@ -2,78 +2,78 @@
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Version](https://img.shields.io/badge/version-1.0.0-green.svg) ![Status](https://img.shields.io/badge/status-Active-success.svg)
 
-**DoneTogether** är en modern och intelligent uppgiftshanterare designad för att göra planering och samarbete enkelt, snabbt och roligt. Oavsett om det gäller familjens veckohandling, teamets projektplanering eller din personliga "att-göra"-lista, hjälper DoneTogether dig att få saker gjorda – tillsammans.
+**DoneTogether** is a modern, intelligent task manager designed to make planning and collaboration easy, fast, and fun. Whether it's the family grocery list, your team's project plan, or your personal to-do list, DoneTogether helps you get things done – together.
 
 ---
 
-## 💡 Vad är DoneTogether?
+## 💡 What is DoneTogether?
 
-DoneTogether är mer än bara en att-göra-lista. Det är ett **Smart Task**-verktyg som synkroniserar dina planer i realtid över alla enheter. Med fokus på användarvänlighet och visuell feedback gör appen det enkelt att organisera vardagen.
+DoneTogether is more than a to-do list. It's a **Smart Task** tool that syncs your plans in real time across all devices. With a focus on usability and visual feedback, the app makes it easy to organize everyday life.
 
-### ✨ Huvudfunktioner
+### ✨ Key Features
 
-*   **🔄 Realtidssynkronisering:** Alla ändringar uppdateras omedelbart för alla inbjudna deltagare. Ingen fördröjning, inget krångel.
-*   **👥 Smart Samarbete:** Bjud in vänner och familj via e-post eller unika länkar. Arbeta tillsammans i delade listor.
-*   **📸 Visuell Planering:** Ladda upp bilder till uppgifter för att tydliggöra vad som ska göras eller för att fira framsteg.
-*   **📱 Plattformsoberoende:** Fungerar sömlöst på Android, iOS (via webb) och Desktop.
-*   **🎨 Modern Design:** Ett snyggt, mörkt tema (Dark Mode) som är skonsamt för ögonen och batteriet.
-*   **🔒 Säkerhet:** All data lagras säkert med Google Firebase och all kommunikation är krypterad.
-*   **🧹 Auto-städning:** Slutförda listor arkiveras automatiskt för att hålla din vy ren och fokuserad.
+*   **🔄 Real-time sync:** All changes update instantly for everyone invited. No delay, no hassle.
+*   **👥 Smart collaboration:** Invite friends and family by email or unique links. Work together on shared lists.
+*   **📸 Visual planning:** Add images to tasks to clarify what needs to be done or to celebrate progress.
+*   **📱 Cross-platform:** Works seamlessly on Android, iOS (via web), and desktop.
+*   **🎨 Modern design:** A clean dark theme that's easy on the eyes and battery.
+*   **🔒 Security:** All data is stored securely with Google Firebase and communication is encrypted.
+*   **🧹 Auto-cleanup:** Completed lists are archived automatically to keep your view clean and focused.
 
 ---
 
 ## 📸 Screenshots
 
-| Inloggning | Skapa uppgift | Uppgiftsdetaljer |
-|:----------:|:-------------:|:----------------:|
-| <img src="screenshot/login.png" alt="Inloggningsskärm" width="240"/> | <img src="screenshot/create.png" alt="Skapa uppgift" width="240"/> | <img src="screenshot/creat2.png" alt="Uppgiftsdetaljer" width="240"/> |
+| Login | Create task | Task details |
+|:-----:|:-----------:|:------------:|
+| <img src="screenshot/login.png" alt="Login screen" width="240"/> | <img src="screenshot/create.png" alt="Create task" width="240"/> | <img src="screenshot/creat2.png" alt="Task details" width="240"/> |
 
 ---
 
-## 🛠️ Teknisk Stack
+## 🛠️ Tech Stack
 
-Projektet är byggt med den senaste och mest robusta tekniken för att garantera prestanda och skalbarhet:
+The project is built with modern, robust technology for performance and scalability:
 
 *   **Frontend:** React 19, TypeScript, Vite
 *   **Styling:** Tailwind CSS, Framer Motion
-*   **Backend & Databas:** Google Firebase (Firestore, Auth, Storage)
-*   **Mobil:** Capacitor (Android/iOS native wrapper)
+*   **Backend & database:** Google Firebase (Firestore, Auth, Storage)
+*   **Mobile:** Capacitor (Android/iOS native wrapper)
 
 ---
 
-## 🚀 Installation & Kom Igång
+## 🚀 Installation & Getting Started
 
-Följ dessa steg för att köra projektet lokalt på din dator.
+Follow these steps to run the project locally.
 
-### Förutsättningar
+### Prerequisites
 *   Node.js (v18+)
-*   npm eller yarn
-*   Android Studio (för mobil utveckling)
+*   npm or yarn
+*   Android Studio (for mobile development)
 
-### Steg-för-steg
+### Step by step
 
-1.  **Klona repot**
+1.  **Clone the repo**
     ```bash
     git clone https://github.com/RobinAyzit/DoneTogether.git
     cd DoneTogether
     ```
 
-2.  **Installera beroenden**
+2.  **Install dependencies**
     ```bash
     npm install
     ```
 
-3.  **Konfigurera Firebase**
-    *   Skapa ett projekt i [Firebase Console](https://console.firebase.google.com).
-    *   Kopiera din konfiguration till `src/lib/firebase.ts`.
-    *   Aktivera Google Auth och Firestore Database.
+3.  **Configure Firebase**
+    *   Create a project in [Firebase Console](https://console.firebase.google.com).
+    *   Copy your config into `src/lib/firebase.ts`.
+    *   Enable Google Auth and Firestore Database.
 
-4.  **Starta webbservern**
+4.  **Start the dev server**
     ```bash
     npm run dev
     ```
 
-5.  **Bygg för Android (Valfritt)**
+5.  **Build for Android (optional)**
     ```bash
     npm run build
     npx cap sync
@@ -82,17 +82,17 @@ Följ dessa steg för att köra projektet lokalt på din dator.
 
 ---
 
-📄 License 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+📄 **License**  
+This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.
 
-👨‍💻 Author 
-Created 2026 by © nRn World 
+👨‍💻 **Author**  
+Created 2026 by © nRn World  
 
-📧 bynrnworld@gmail.com 
+📧 bynrnworld@gmail.com
 
-🙏 Support 
-If you like this project, consider to: 
+🙏 **Support**  
+If you like this project, consider:
 
-⭐ Star the project on GitHub 
-☕ Buy me a coffee 
-📢 Share with your friends
+⭐ Starring the project on GitHub  
+☕ Buying me a coffee  
+📢 Sharing with your friends
