@@ -1,86 +1,98 @@
-# 🚀 DoneTogether - Real-Time Collaborative Planning
+# 🚀 DoneTogether - Smart Task Management
 
-DoneTogether is a modern, fast, and collaborative planning app built with React, TypeScript, and Firebase. It allows friends, families, or teams to create shared plans, follow progress in real-time, and celebrate achievements together with images.
+![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Version](https://img.shields.io/badge/version-1.0.0-green.svg) ![Status](https://img.shields.io/badge/status-Active-success.svg)
 
-[![App Preview](https://img.shields.io/badge/Live_Demo-Visit_App-10b981?style=for-the-badge&logo=vercel)](https://robinayzit.github.io/DoneTogether/)
+**DoneTogether** är en modern och intelligent uppgiftshanterare designad för att göra planering och samarbete enkelt, snabbt och roligt. Oavsett om det gäller familjens veckohandling, teamets projektplanering eller din personliga "att-göra"-lista, hjälper DoneTogether dig att få saker gjorda – tillsammans.
 
-**[🌐 Try the Live App](https://robinayzit.github.io/DoneTogether/)**
+---
 
-## ✨ Features
+## 💡 Vad är DoneTogether?
 
-- **Real-time Sync:** See updates from your collaborators instantly.
-- **Image Sharing:** Upload images for plans and individual items to document your progress.
-- **Friend System:** Easy search and friend requests via Gmail.
-- **Persistent Invites:** Share specific plans via unique links.
-- **History View:** Reflect on your completed plans in a dedicated archive.
-- **Auto-Cleanup:** Completed plans are automatically archived/deleted after 30 days to keep the app lean.
-- **Responsive Design:** Premium dark-mode UI that works great on mobile and desktop.
+DoneTogether är mer än bara en att-göra-lista. Det är ett **Smart Task**-verktyg som synkroniserar dina planer i realtid över alla enheter. Med fokus på användarvänlighet och visuell feedback gör appen det enkelt att organisera vardagen.
 
-## 🛠️ Technology Stack
+### ✨ Huvudfunktioner
 
-- **Frontend:** React 19 + TypeScript
-- **Styling:** Tailwind CSS + Framer Motion for animations
-- **Backend:** Firebase (Authentication & Firestore)
-- **Built with:** Vite
+*   **🔄 Realtidssynkronisering:** Alla ändringar uppdateras omedelbart för alla inbjudna deltagare. Ingen fördröjning, inget krångel.
+*   **👥 Smart Samarbete:** Bjud in vänner och familj via e-post eller unika länkar. Arbeta tillsammans i delade listor.
+*   **📸 Visuell Planering:** Ladda upp bilder till uppgifter för att tydliggöra vad som ska göras eller för att fira framsteg.
+*   **📱 Plattformsoberoende:** Fungerar sömlöst på Android, iOS (via webb) och Desktop.
+*   **🎨 Modern Design:** Ett snyggt, mörkt tema (Dark Mode) som är skonsamt för ögonen och batteriet.
+*   **🔒 Säkerhet:** All data lagras säkert med Google Firebase och all kommunikation är krypterad.
+*   **🧹 Auto-städning:** Slutförda listor arkiveras automatiskt för att hålla din vy ren och fokuserad.
 
-## 🚀 Getting Started
+---
 
-### Prerequisites
+## 📸 Screenshots
 
-- Node.js (v18 or higher)
-- npm or yarn
+| Inloggning | Skapa uppgift | Uppgiftsdetaljer |
+|:----------:|:-------------:|:----------------:|
+| <img src="screenshot/login.png" alt="Inloggningsskärm" width="240"/> | <img src="screenshot/create.png" alt="Skapa uppgift" width="240"/> | <img src="screenshot/creat2.png" alt="Uppgiftsdetaljer" width="240"/> |
 
-### Installation
+---
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/RobinAyzit/DoneTogether.git
-   cd DoneTogether
-   ```
+## 🛠️ Teknisk Stack
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+Projektet är byggt med den senaste och mest robusta tekniken för att garantera prestanda och skalbarhet:
 
-3. Create a Firebase project and add your configuration to `src/lib/firebase.ts`.
+*   **Frontend:** React 19, TypeScript, Vite
+*   **Styling:** Tailwind CSS, Framer Motion
+*   **Backend & Databas:** Google Firebase (Firestore, Auth, Storage)
+*   **Mobil:** Capacitor (Android/iOS native wrapper)
 
-4. Start the development server:
-   ```bash
-   npm run dev
-   ```
+---
 
-## 🤝 Contributing
+## 🚀 Installation & Kom Igång
 
-We love contributions! Whether it's fixing a bug, adding a feature, or improving documentation:
+Följ dessa steg för att köra projektet lokalt på din dator.
 
-1. **Fork** the project.
-2. Create your **Feature Branch** (`git checkout -b feature/AmazingFeature`).
-3. **Commit** your changes (`git commit -m 'Add some AmazingFeature'`).
-4. **Push** to the branch (`git push origin feature/AmazingFeature`).
-5. Open a **Pull Request**.
+### Förutsättningar
+*   Node.js (v18+)
+*   npm eller yarn
+*   Android Studio (för mobil utveckling)
 
-## 📝 Roadmap
+### Steg-för-steg
 
-- [ ] Firebase Storage integration for higher resolution images.
-- [ ] Push notifications for item completion.
-- [ ] Recurring plans (weekly/monthly).
-- [ ] Dark/Light mode toggle.
+1.  **Klona repot**
+    ```bash
+    git clone https://github.com/RobinAyzit/DoneTogether.git
+    cd DoneTogether
+    ```
 
-## 📄 License
+2.  **Installera beroenden**
+    ```bash
+    npm install
+    ```
 
-Distributed under the MIT License. See `LICENSE` for more information.
+3.  **Konfigurera Firebase**
+    *   Skapa ett projekt i [Firebase Console](https://console.firebase.google.com).
+    *   Kopiera din konfiguration till `src/lib/firebase.ts`.
+    *   Aktivera Google Auth och Firestore Database.
 
-## 👨‍💻 Author
+4.  **Starta webbservern**
+    ```bash
+    npm run dev
+    ```
 
-Copyright (c) 2026 nRn World
+5.  **Bygg för Android (Valfritt)**
+    ```bash
+    npm run build
+    npx cap sync
+    npx cap open android
+    ```
 
-📧 [bynrnworld@gmail.com](mailto:bynrnworld@gmail.com)
+---
 
-## 🙏 Support
+📄 License 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
 
-If you like this project, consider to:
+👨‍💻 Author 
+Created 2026 by © nRn World 
 
-*   ⭐ Star the project on GitHub
-*   ☕ [Buy me a coffee](https://buymeacoffee.com/nrnworld)
-*   📢 Share with your friends
+📧 bynrnworld@gmail.com 
+
+🙏 Support 
+If you like this project, consider to: 
+
+⭐ Star the project on GitHub 
+☕ Buy me a coffee 
+📢 Share with your friends
