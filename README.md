@@ -73,7 +73,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## 👨‍💻 Author
 
-Copyright (c) 2026 nRn World**
+Copyright (c) 2026 nRn World
 
 📧 [bynrnworld@gmail.com](mailto:bynrnworld@gmail.com)
 
